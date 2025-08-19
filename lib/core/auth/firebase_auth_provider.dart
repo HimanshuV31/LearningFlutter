@@ -153,5 +153,18 @@ class FirebaseAuthProvider implements AuthProvider {
     await FirebaseAuth.instance.signInWithCredential(oauthCredential);
     return AuthUser.fromFirebase(userCredential.user!);
   }
-
-}
+  Future<void> reloadUser() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.reload(); // refresh user from Firebase
+      } else {
+        throw const UserNotFoundAuthException();
+      }
+    } on FirebaseAuthException catch (e) {
+      throw AuthException.fromCode(e.code);
+    } catch (e) {
+      throw GenericAuthException("$e");
+    }
+  }
+  }

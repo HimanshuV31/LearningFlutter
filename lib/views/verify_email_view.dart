@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:infinity_notes/core/auth/auth_service.dart';
 
 import '../core/auth/auth_exception.dart';
 import '../core/dialogs.dart';
@@ -14,12 +15,14 @@ class VerifyEmailView extends StatefulWidget {
 
 class _VerifyEmailViewState extends State<VerifyEmailView> {
   bool _isSent = false;
+  final auth = AuthService.firebase();
+
 
   Future<void> sendVerificationEmail() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null && !user.emailVerified) {
-        await user.sendEmailVerification();
+      final user =auth.currentUser;
+      if (user != null && !user.isEmailVerified) {
+        await auth.sendEmailVerification();
         setState(() => _isSent = true);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -48,9 +51,9 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
   }
 
   Future<void> checkVerified() async {
-    await FirebaseAuth.instance.currentUser?.reload();
+    await auth.reloadUser();
     final isVerified =
-        FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+        auth.currentUser?.isEmailVerified ?? false;
     if (!mounted) return;
     if (isVerified) {
       Navigator.pushNamedAndRemoveUntil(context, loginRoute, (_) => false);

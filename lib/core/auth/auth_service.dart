@@ -49,4 +49,8 @@ class AuthService implements local_auth.AuthProvider {
   @override
   Future<local_auth.AuthUser?> logInWithGoogle() async =>
       provider.logInWithGoogle();
+
+  @override
+  Future<void> reloadUser() => provider.reloadUser();
+
 }

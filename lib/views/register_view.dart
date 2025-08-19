@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:infinity_notes/core/auth/auth_exception.dart';
+// ignore_for_file: no_leading_underscores_for_local_identifiers
 
+import 'package:flutter/material.dart';
+import 'package:infinity_notes/core/auth/auth_exception.dart';
+import 'package:infinity_notes/core/auth/auth_service.dart';
 import '../core/dialogs.dart';
 import '../constants/routes.dart';
 
@@ -49,12 +50,16 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   Future<void> register() async {
+    final _email = _emailController.text.trim();
+    final _password = _passwordController.text.trim();
+
     if (!_formKey.currentState!.validate()) return;
+    if (!_passwordsMatch) return;
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      await AuthService.firebase().createUser(
+        email: _email,
+        password: _password,
       );
       if (!mounted) return;
       showDialog(
@@ -167,23 +172,7 @@ class _RegisterViewState extends State<RegisterView> {
               // Password
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: "Password",
-
-                  /*The code below is for password visibility.
-                  But, we'll keep it available for CONFIRM PASSWORD field only*/
-
-                  // suffixIcon: IconButton(
-                  //   icon: Icon(
-                  //     _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                  //   ),
-                  //   onPressed: () {
-                  //     setState(() {
-                  //       _isPasswordVisible = !_isPasswordVisible;
-                  //     });
-                  //   },
-                  // ),
-                ),
+                decoration: InputDecoration(labelText: "Password"),
                 obscureText: !_isPasswordVisible,
                 onChanged: (value) {
                   _validatePassword(value);

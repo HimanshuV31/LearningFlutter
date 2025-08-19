@@ -17,13 +17,15 @@ class _LoginViewState extends State<LoginView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  final auth = AuthService.firebase();
+
   Future<void> login() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
     try {
-      await AuthService.firebase().logIn(email: email, password: password);
+      await auth.logIn(email: email, password: password);
 
-      final user = AuthService.firebase().currentUser;
+      final user = auth.currentUser;
 
       if (user != null) {
         if (user.isEmailVerified) {
@@ -147,9 +149,7 @@ class _LoginViewState extends State<LoginView> {
                       return;
                     }
                     try {
-                      await AuthService.firebase().sendPasswordReset(
-                        email: email,
-                      );
+                      await auth.sendPasswordReset(email: email,);
                       if (!mounted) return;
                       showCustomDialog(
                         context: context,
@@ -178,10 +178,10 @@ class _LoginViewState extends State<LoginView> {
               ],
             ),
             //Text stating Social Login
-            const SizedBox(height: 16),
+            const SizedBox(height: 17),
             const Text(
               "Or sign in with a social account",
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: TextStyle(fontSize: 16, color: Colors.black54),
             ),
             //Row for Social Logins
             Row(
@@ -191,15 +191,14 @@ class _LoginViewState extends State<LoginView> {
                 GestureDetector(
                   onTap: () async {
                     try {
-                      final user =
-                      await AuthService.firebase().logInWithGoogle();
+                      final user = await auth.logInWithGoogle();
                       if (user != null && user.isEmailVerified) {
                         if (!mounted) return;
                         showCustomToast(context, "Login Successful via Google");
                         Navigator.pushNamedAndRemoveUntil(
                           context,
                           notesRoute,
-                              (_) => false,
+                          (_) => false,
                         );
                       }
                     } on AuthException catch (e) {
@@ -230,8 +229,7 @@ class _LoginViewState extends State<LoginView> {
                   GestureDetector(
                     onTap: () async {
                       try {
-                        final user =
-                        await AuthService.firebase().logInWithApple();
+                        final user = await auth.logInWithApple();
                         if (user != null && user.isEmailVerified) {
                           if (!mounted) return;
                           showCustomToast(
@@ -241,7 +239,7 @@ class _LoginViewState extends State<LoginView> {
                           Navigator.pushNamedAndRemoveUntil(
                             context,
                             notesRoute,
-                                (_) => false,
+                            (_) => false,
                           );
                         }
                       } catch (e) {
@@ -263,8 +261,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ],
               ],
-            )
-
+            ),
           ],
         ),
       ),

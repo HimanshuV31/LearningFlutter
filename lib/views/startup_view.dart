@@ -45,7 +45,7 @@ class StartupView extends StatelessWidget {
           } else {
             return const VerifyEmailView();
           }
-        } else {
+        }else {
           return const LoginView();
         }
       },
