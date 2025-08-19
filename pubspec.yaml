@@ -1,0 +1,48 @@
+name: infinity_notes
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  firebase_core: ^4.0.0
+  firebase_auth: ^6.0.1
+  cloud_firestore: ^6.0.0
+  firebase_storage: ^13.0.0
+  rename_app: ^1.6.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_native_splash: 2.4.6
+  flutter_launcher_icons: 0.14.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/Infinity_Notes_Icon.png
+
+# ---- Splash screen ----
+flutter_native_splash:
+  color: "#3993ad"
+  image: assets/icons/Infinity_Notes_Icon.png
+  android: true
+  ios: true
+  android_gravity: center
+
+
+# ---- App icons ----
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icons/Infinity_Notes_Icon.png
+  adaptive_icon_background: "#3993ad"
+  adaptive_icon_foreground: assets/icons/Infinity_Notes_Icon.png
+  adaptive_icon_foreground_padding: 20  # prevents icon from zooming
