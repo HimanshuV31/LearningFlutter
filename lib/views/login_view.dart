@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/ui/custom_toast.dart';
 import '../core/auth/auth_exception.dart';
@@ -106,7 +107,6 @@ class _LoginViewState extends State<LoginView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Spacer(flex: 2),
             TextField(
               controller: emailController,
               decoration: const InputDecoration(labelText: "Email"),
@@ -155,7 +155,8 @@ class _LoginViewState extends State<LoginView> {
                         context: context,
                         title: "Reset Email Sent",
                         message:
-                            "Password Reset email has been sent if the email is registered. Otherwise, kindly do the registration.",
+                            "Password Reset email has been sent if the email is registered."
+                            "Otherwise, kindly do the registration.",
                       );
                     } on AuthException catch (e) {
                       final authError = AuthException.fromCode(e.code);
@@ -176,10 +177,94 @@ class _LoginViewState extends State<LoginView> {
                 ),
               ],
             ),
-            Spacer(flex: 3),
-            //Code for Row in which icons of Google, Apple will be shown.
-            Row(),
-            //After the Row block, we'll print a line of text.(Part of Column)
+            //Text stating Social Login
+            const SizedBox(height: 16),
+            const Text(
+              "Or sign in with a social account",
+              style: TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+            //Row for Social Logins
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Google
+                GestureDetector(
+                  onTap: () async {
+                    try {
+                      final user =
+                      await AuthService.firebase().logInWithGoogle();
+                      if (user != null && user.isEmailVerified) {
+                        if (!mounted) return;
+                        showCustomToast(context, "Login Successful via Google");
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          notesRoute,
+                              (_) => false,
+                        );
+                      }
+                    } on AuthException catch (e) {
+                      if (!mounted) return;
+                      if (e.code == 'cancelled') {
+                        return;
+                      } else {
+                        await showCustomDialog(
+                          context: context,
+                          title: "Google Sign-In Failed",
+                          message: e.toString(),
+                        );
+                      }
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      Image.asset('assets/icons/google_logo.png', height: 40),
+                      const SizedBox(height: 4),
+                      const Text("Google"),
+                    ],
+                  ),
+                ),
+
+                // Only add spacing + Apple button if on iOS
+                if (Platform.isIOS) ...[
+                  const SizedBox(width: 40),
+                  GestureDetector(
+                    onTap: () async {
+                      try {
+                        final user =
+                        await AuthService.firebase().logInWithApple();
+                        if (user != null && user.isEmailVerified) {
+                          if (!mounted) return;
+                          showCustomToast(
+                            context,
+                            "Login Successful via Apple",
+                          );
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            notesRoute,
+                                (_) => false,
+                          );
+                        }
+                      } catch (e) {
+                        if (!mounted) return;
+                        await showCustomDialog(
+                          context: context,
+                          title: "Apple Sign-In Failed",
+                          message: e.toString(),
+                        );
+                      }
+                    },
+                    child: Column(
+                      children: [
+                        Image.asset('assets/icons/apple_logo.png', height: 40),
+                        const SizedBox(height: 4),
+                        const Text("Apple"),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            )
+
           ],
         ),
       ),

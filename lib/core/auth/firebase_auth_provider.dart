@@ -1,10 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:infinity_notes/core/auth/auth_exception.dart';
 import 'package:infinity_notes/core/auth/auth_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuthException, FirebaseAuth;
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuthException,
+                                    FirebaseAuth, OAuthProvider, GoogleAuthProvider;
 import 'package:infinity_notes/core/auth/auth_user.dart';
 import '../../firebase_options.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
@@ -108,4 +111,47 @@ class FirebaseAuthProvider implements AuthProvider {
       throw GenericAuthException("$e.code");
     }
   }
+
+
+
+  @override
+  Future<AuthUser?> logInWithGoogle() async {
+    if (kIsWeb) {
+      final userCred = await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
+      return AuthUser.fromFirebase(userCred.user!);
+    }
+
+    final gsi = GoogleSignIn.instance;
+    await gsi.initialize();
+
+    final account = await gsi.authenticate();
+    // ignore: unnecessary_null_comparison
+    if (account == null) return null;
+
+    final idToken = (account.authentication).idToken;
+    if (idToken == null) {
+      throw GenericAuthException('missing-id-token');
+    }
+
+    final oauth = GoogleAuthProvider.credential(idToken: idToken);
+    final userCred = await FirebaseAuth.instance.signInWithCredential(oauth);
+    return AuthUser.fromFirebase(userCred.user!);
+  }
+
+
+
+  @override
+  Future<AuthUser?> logInWithApple() async {
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+    );
+    final oauthCredential = OAuthProvider("apple.com").credential(
+      idToken: appleCredential.identityToken,
+      accessToken: appleCredential.authorizationCode,
+    );
+    final userCredential =
+    await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+    return AuthUser.fromFirebase(userCredential.user!);
+  }
+
 }
