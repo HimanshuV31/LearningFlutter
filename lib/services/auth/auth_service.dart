@@ -1,4 +1,4 @@
-import 'package:infinity_notes/core/auth/auth_user.dart' as local_auth;
+import 'package:infinity_notes/services/auth/auth_user.dart' as local_auth;
 
 import 'auth_provider.dart'as local_auth;
 

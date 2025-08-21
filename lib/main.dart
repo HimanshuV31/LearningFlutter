@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/core/auth/auth_service.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'constants/routes.dart';
 import 'views/startup_view.dart';
 import 'views/login_view.dart';

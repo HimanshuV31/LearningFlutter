@@ -1,4 +1,4 @@
-import 'package:infinity_notes/core/auth/auth_user.dart';
+import 'package:infinity_notes/services/auth/auth_user.dart';
 
 abstract class AuthProvider{
   Future<void> initialize();

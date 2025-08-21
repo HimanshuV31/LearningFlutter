@@ -1,9 +1,9 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/core/auth/auth_exception.dart';
-import 'package:infinity_notes/core/auth/auth_service.dart';
-import '../core/dialogs.dart';
+import 'package:infinity_notes/services/auth/auth_exception.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
+import '../ui/dialogs.dart';
 import '../constants/routes.dart';
 
 class RegisterView extends StatefulWidget {

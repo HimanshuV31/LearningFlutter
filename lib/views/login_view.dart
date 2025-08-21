@@ -4,7 +4,7 @@ import 'package:infinity_notes/ui/custom_toast.dart';
 import '../core/auth/auth_exception.dart';
 import '../core/auth/auth_service.dart';
 import '../constants/routes.dart';
-import '../core/dialogs.dart';
+import '../ui/dialogs.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});

@@ -1,13 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart'
+    show FirebaseAuthException, FirebaseAuth, OAuthProvider, GoogleAuthProvider;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:infinity_notes/core/auth/auth_exception.dart';
-import 'package:infinity_notes/core/auth/auth_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuthException,
-                                    FirebaseAuth, OAuthProvider, GoogleAuthProvider;
-import 'package:infinity_notes/core/auth/auth_user.dart';
-import '../../firebase_options.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:infinity_notes/services/auth/auth_exception.dart';
+import 'package:infinity_notes/services/auth/auth_provider.dart';
+import 'package:infinity_notes/services/auth/auth_user.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+
+import '../../firebase_options.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
@@ -18,8 +19,10 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<AuthUser> createUser({required String email,required String password,}) async
-  {
+  Future<AuthUser> createUser({
+    required String email,
+    required String password,
+  }) async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -49,8 +52,10 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<AuthUser> logIn({required String email,required String password,}) async
-  {
+  Future<AuthUser> logIn({
+    required String email,
+    required String password,
+  }) async {
     try {
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
@@ -68,8 +73,7 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<void> sendEmailVerification() async
-  {
+  Future<void> sendEmailVerification() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -79,14 +83,13 @@ class FirebaseAuthProvider implements AuthProvider {
       }
     } on FirebaseAuthException catch (e) {
       throw AuthException.fromCode(e.code);
-    }catch (e) {
+    } catch (e) {
       throw GenericAuthException("$e.code");
     }
   }
 
   @override
-  Future<void> signOut() async
-  {
+  Future<void> signOut() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -96,28 +99,28 @@ class FirebaseAuthProvider implements AuthProvider {
       }
     } on FirebaseAuthException catch (e) {
       throw AuthException.fromCode(e.code);
-    }catch (e) {
+    } catch (e) {
       throw GenericAuthException("$e.code");
     }
   }
 
   @override
   Future<void> sendPasswordReset({required String email}) async {
-    try{
+    try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-    }on FirebaseAuthException catch (e){
+    } on FirebaseAuthException catch (e) {
       throw AuthException.fromCode("$e.code");
-    }catch (e){
+    } catch (e) {
       throw GenericAuthException("$e.code");
     }
   }
 
-
-
   @override
   Future<AuthUser?> logInWithGoogle() async {
     if (kIsWeb) {
-      final userCred = await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
+      final userCred = await FirebaseAuth.instance.signInWithPopup(
+        GoogleAuthProvider(),
+      );
       return AuthUser.fromFirebase(userCred.user!);
     }
 
@@ -138,21 +141,24 @@ class FirebaseAuthProvider implements AuthProvider {
     return AuthUser.fromFirebase(userCred.user!);
   }
 
-
-
   @override
   Future<AuthUser?> logInWithApple() async {
     final appleCredential = await SignInWithApple.getAppleIDCredential(
-      scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
     );
     final oauthCredential = OAuthProvider("apple.com").credential(
       idToken: appleCredential.identityToken,
       accessToken: appleCredential.authorizationCode,
     );
-    final userCredential =
-    await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+    final userCredential = await FirebaseAuth.instance.signInWithCredential(
+      oauthCredential,
+    );
     return AuthUser.fromFirebase(userCredential.user!);
   }
+
   Future<void> reloadUser() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -167,4 +173,4 @@ class FirebaseAuthProvider implements AuthProvider {
       throw GenericAuthException("$e");
     }
   }
-  }
+}

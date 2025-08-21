@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:infinity_notes/core/auth/auth_service.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
 
-import '../core/auth/auth_exception.dart';
-import '../core/dialogs.dart';
 import '../constants/routes.dart';
+import '../services/auth/auth_exception.dart';
+import '../ui/dialogs.dart';
 
 class VerifyEmailView extends StatefulWidget {
   const VerifyEmailView({super.key});
@@ -17,10 +16,9 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
   bool _isSent = false;
   final auth = AuthService.firebase();
 
-
   Future<void> sendVerificationEmail() async {
     try {
-      final user =auth.currentUser;
+      final user = auth.currentUser;
       if (user != null && !user.isEmailVerified) {
         await auth.sendEmailVerification();
         setState(() => _isSent = true);
@@ -30,30 +28,30 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
         );
       }
     } on AuthException catch (e) {
-      final authError= AuthException.fromCode(e.code);
-      String message =authError.message;
+      final authError = AuthException.fromCode(e.code);
+      String message = authError.message;
       String errorTitle = authError.title;
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       await showCustomDialog(
         context: context,
         title: errorTitle,
         message: message,
       );
-    }
-    catch (e){
-      await showCustomDialog(context: context,
-          title: "Unknown Error",
-          message: "Unknown Error: $e");
+    } catch (e) {
+      await showCustomDialog(
+        context: context,
+        title: "Unknown Error",
+        message: "Unknown Error: $e",
+      );
     }
   }
 
   Future<void> checkVerified() async {
     await auth.reloadUser();
-    final isVerified =
-        auth.currentUser?.isEmailVerified ?? false;
+    final isVerified = auth.currentUser?.isEmailVerified ?? false;
     if (!mounted) return;
     if (isVerified) {
       Navigator.pushNamedAndRemoveUntil(context, loginRoute, (_) => false);
