@@ -262,4 +262,3 @@ class DatabaseNote {
   @override
   int get hashCode => id.hashCode;
 } //class DatabaseNote
-
