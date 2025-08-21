@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+
 import 'crud_exception.dart';
 
 //Constants for Database
@@ -203,7 +204,6 @@ class NotesService {
       throw UnableToGetDocumentsDirectoryException();
     }
   } // Future<void> open()
-
 } // class NotesService. Should be the end of the block every time.
 
 @immutable
@@ -247,13 +247,15 @@ class DatabaseNote {
       userId = map[userIdColumn] as int,
       title = map[titleColumn] as String,
       text = map[textColumn] as String,
-      isSyncedWithCloud = (map[isSyncedWithCloudColumn] as int) == 1
-          ? true
-          : false;
-
+      isSyncedWithCloud = (map[isSyncedWithCloudColumn] as int) == 1 ? true : false;
   @override
   String toString() {
-    return "Note(id: $id, userId: $userId, title: $title, text: $text, isSyncedWithCloud: $isSyncedWithCloud,)";
+    return "Note("
+        "id: $id, "
+        "userId: $userId, "
+        "title: $title, "
+        "text: $text, "
+        "isSyncedWithCloud: $isSyncedWithCloud,)";
   }
 
   @override
