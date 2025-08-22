@@ -1,8 +1,8 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/ui/custom_toast.dart';
-import '../core/auth/auth_exception.dart';
-import '../core/auth/auth_service.dart';
+import '../services/auth/auth_exception.dart';
+import '../services/auth/auth_service.dart';
 import '../constants/routes.dart';
 import '../ui/dialogs.dart';
 

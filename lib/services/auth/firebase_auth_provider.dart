@@ -159,6 +159,7 @@ class FirebaseAuthProvider implements AuthProvider {
     return AuthUser.fromFirebase(userCredential.user!);
   }
 
+
   Future<void> reloadUser() async {
     try {
       final user = FirebaseAuth.instance.currentUser;

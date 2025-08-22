@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
+import 'package:infinity_notes/services/crud/notes_service.dart';
 import 'package:infinity_notes/ui/custom_toast.dart';
 import 'package:infinity_notes/enums/menu_actions.dart';
 import '../constants/routes.dart';
@@ -12,6 +14,21 @@ class NotesView extends StatefulWidget {
 }
 
 class _NotesViewState extends State<NotesView> {
+
+  String get userEmail => AuthService.firebase().currentUser!.email!;
+  late final NotesService _notesService;
+  @override
+  void initState() {
+    _notesService = NotesService();
+    _notesService.open();
+    super.initState();
+  }
+  @override
+  void dispose() {
+    _notesService.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     const backgroundColor = Colors.pink;
@@ -54,7 +71,28 @@ class _NotesViewState extends State<NotesView> {
           ),
         ],
       ),
-      body: const Center(child: Text("Welcome to Home Page!")),
+      body: FutureBuilder(
+          future: _notesService.getOrCreateUser(email: userEmail),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+
+              case ConnectionState.done:
+                return StreamBuilder(
+                  stream: _notesService.allNotes,
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                          return const Text("Waiting for Notes 010101");
+                        default:
+                          return const CircularProgressIndicator();
+                      }
+                    },);
+              default:
+                return const CircularProgressIndicator();
+            }
+
+          },
+      ), /*FutureBuilder*/
     );
   }
 }
@@ -83,4 +121,4 @@ Future<bool> showLogoutDialog(BuildContext context) {
       );
     },
   ).then((value) => value ?? false);
-}
+} // Future<bool> showLogoutDialog()
