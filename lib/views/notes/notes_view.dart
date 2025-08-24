@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:infinity_notes/enums/menu_actions.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/crud/notes_service.dart';
+import 'package:infinity_notes/ui/custom_app_bar.dart';
 import 'package:infinity_notes/ui/custom_toast.dart';
-import 'package:infinity_notes/enums/menu_actions.dart';
-import '../constants/routes.dart';
+
+import '../../constants/routes.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({super.key});
@@ -14,32 +16,46 @@ class NotesView extends StatefulWidget {
 }
 
 class _NotesViewState extends State<NotesView> {
-
   String get userEmail => AuthService.firebase().currentUser!.email!;
   late final NotesService _notesService;
+
   @override
   void initState() {
     _notesService = NotesService();
     _notesService.open();
     super.initState();
   }
+
   @override
   void dispose() {
     _notesService.close();
     super.dispose();
   }
 
+  Future<void> newNote() async {
+    final note = await Navigator.of(context).pushNamed(newNoteRoute);
+  }
+
   @override
   Widget build(BuildContext context) {
-    const backgroundColor = Colors.pink;
+    const backgroundColor = Color(0xFF3993ad);
     const foregroundColor = Colors.white;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Infinity Notes | Home"),
-        backgroundColor: backgroundColor,
+      appBar: CustomAppBar(
+        title: "Infinity Notes | Notes",
+        backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
         actions: [
+          Tooltip(
+            message: "New Note",
+            child: IconButton(
+                onPressed: newNote,
+                icon: Icon(Icons.add)
+            ),
+          ),
+
           PopupMenuButton<MenuAction>(
+            icon: const Icon(Icons.menu_rounded),
             onSelected: (value) async {
               switch (value) {
                 case MenuAction.logout:
@@ -51,10 +67,9 @@ class _NotesViewState extends State<NotesView> {
                     if (!mounted) return;
                     if (mounted) {
                       showCustomToast(context, "Logout Successful");
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        loginRoute,
-                        (_) => false,
-                      );
+                      Navigator.of(
+                        context,
+                      ).pushNamedAndRemoveUntil(loginRoute, (_) => false);
                     }
                   }
                   break;
@@ -72,27 +87,26 @@ class _NotesViewState extends State<NotesView> {
         ],
       ),
       body: FutureBuilder(
-          future: _notesService.getOrCreateUser(email: userEmail),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-
-              case ConnectionState.done:
-                return StreamBuilder(
-                  stream: _notesService.allNotes,
-                    builder: (context, snapshot) {
-                      switch (snapshot.connectionState) {
-                        case ConnectionState.waiting:
-                          return const Text("Waiting for Notes 010101");
-                        default:
-                          return const CircularProgressIndicator();
-                      }
-                    },);
-              default:
-                return const CircularProgressIndicator();
-            }
-
-          },
-      ), /*FutureBuilder*/
+        future: _notesService.getOrCreateUser(email: userEmail),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              return StreamBuilder(
+                stream: _notesService.allNotes,
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return const Text("Waiting for Notes 010101");
+                    default:
+                      return const CircularProgressIndicator();
+                  }
+                },
+              );
+            default:
+              return const CircularProgressIndicator();
+          }
+        },
+      ) /*FutureBuilder*/,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
+import 'package:infinity_notes/ui/custom_app_bar.dart';
 
 import '../constants/routes.dart';
 import '../services/auth/auth_exception.dart';
@@ -68,9 +69,9 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
     const foregroundColor = Colors.white;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Infinity Notes | Verify Email"),
-        backgroundColor: backgroundColor,
+      appBar: CustomAppBar(
+        title: "Infinity Notes | Verify Email",
+        backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
       ),
       body: Center(

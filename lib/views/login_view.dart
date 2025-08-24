@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:infinity_notes/ui/custom_app_bar.dart';
 import 'package:infinity_notes/ui/custom_toast.dart';
 import '../services/auth/auth_exception.dart';
 import '../services/auth/auth_service.dart';
@@ -98,9 +99,9 @@ class _LoginViewState extends State<LoginView> {
     const backgroundColor = Colors.cyan;
     const foregroundColor = Colors.white;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Infinity Notes | Login"),
-        backgroundColor: backgroundColor,
+      appBar: CustomAppBar(
+        title: "Infinity Notes | Login",
+        backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
       ),
 

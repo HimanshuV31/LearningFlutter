@@ -71,7 +71,7 @@ factory NotesService() => _shared;
       isSyncedWithCloudColumn: 0,
     });
     if (updatesCount == 0) {
-      throw CouldNotUpdateNote();
+      throw CrudException.fromCode('could-not-update-note');
     } else {
       final updatedNote = await getNote(id: note.id);
       _notes.removeWhere((note) => note.id == updatedNote.id);
@@ -99,7 +99,7 @@ factory NotesService() => _shared;
       whereArgs: [id],
     );
     if (notes.isEmpty) {
-      throw CouldNotFindNoteException();
+      throw CrudException.fromCode('could-not-find-note');
     } else {
       final note = DatabaseNote.fromRow(notes.first);
       _notes.removeWhere((note) => note.id == id);
@@ -128,7 +128,7 @@ factory NotesService() => _shared;
     final db = _getDatabaseOrThrow();
     final dbUser = await getUser(email: owner.email);
     if (dbUser != owner) {
-      throw CouldNotFindUserException();
+      throw CrudException.fromCode('could-not-find-user');
     }
     final noteId = await db.insert(noteTable, {
       userIdColumn: owner.id,
@@ -158,7 +158,7 @@ factory NotesService() => _shared;
       whereArgs: [id],
     );
     if (deletedCount != 1) {
-      throw CouldNotDeleteNote();
+      throw CrudException.fromCode('could-not-delete-note');
     } else {
       _notes.removeWhere((note) => note.id == id);
       _notesStreamController.add(_notes);
@@ -170,7 +170,12 @@ factory NotesService() => _shared;
     try {
       final user = await getUser(email: email);
       return user;
-    } on CouldNotFindUserException {
+      /* } on CouldNotFindUserException {*/
+    }on CrudException catch (e)   {
+      if (e.code != 'could-not-find-user') {
+        rethrow;
+      }
+
       final createdUser = await createUser(email: email);
       return createdUser;
     } catch (e){rethrow;}
@@ -186,7 +191,7 @@ factory NotesService() => _shared;
       whereArgs: [email.toLowerCase()],
     );
     if (results.isEmpty) {
-      throw CouldNotFindUserException();
+      throw CrudException.fromCode('could-not-find-user');
     } else {
       return DatabaseUser.fromMap(results.first);
     }
@@ -202,7 +207,7 @@ factory NotesService() => _shared;
       whereArgs: [email.toLowerCase()],
     );
     if (results.isNotEmpty) {
-      throw UserAlreadyExistsException();
+      throw CrudException.fromCode('user-already-exists');
     }
     final userId = await db.insert(userTable, {
       emailColumn: email.toLowerCase(),
@@ -220,24 +225,26 @@ factory NotesService() => _shared;
       whereArgs: [email.toLowerCase()],
     );
     if (deletedCount != 1) {
-      throw CouldNotDeleteUser();
+      throw CrudException.fromCode('could-not-delete-user');
     }
   } //Future<void> deleteUser()
 
   // Database Functions
   Future<void> _ensureDBIsOpen() async{
-    try{
+    try {
       await open();
-    } on DatabaseAlreadyOpenException {
-      //empty
+    }on CrudException catch (e)  {
+      if (e.code != 'database-already-open') {
+        rethrow;
+      }//empty
     }
   } //Future<void> _ensureDBIsOpen()
 
   Database _getDatabaseOrThrow() {
     final db = _db;
     if (db == null) {
-      throw DatabaseNotOpenException();
-    } else {
+      throw CrudException.fromCode('database-not-open');
+      } else {
       return db;
     }
   } // Database _getDatabaseOrThrow()
@@ -245,7 +252,7 @@ factory NotesService() => _shared;
   Future<void> close() async {
     final db = _db;
     if (db == null) {
-      throw DatabaseNotOpenException();
+      throw CrudException.fromCode('database-not-open');
     } else {
       await db.close();
       _db = null;
@@ -254,7 +261,7 @@ factory NotesService() => _shared;
 
   Future<void> open() async {
     if (_db != null) {
-      throw DatabaseAlreadyOpenException();
+      throw CrudException.fromCode('database-already-open');
     }
     try {
       final docsPath = await getApplicationDocumentsDirectory();
@@ -267,8 +274,13 @@ factory NotesService() => _shared;
       await db.execute(createNoteTable);
 
       await _cacheNotes();
-    } on MissingPlatformDirectoryException {
-      throw UnableToGetDocumentsDirectoryException();
+      // } on MissingPlatformDirectoryException {
+    }on CrudException catch (e) {
+      if (e.code != 'missing-platform-directory') {
+        rethrow;
+      } else {
+        throw CrudException.fromCode('document-dir-not-found');
+      }
     }
   } // Future<void> open()
 } // class NotesService. Should be the end of the block every time.
