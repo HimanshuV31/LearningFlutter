@@ -1,8 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+
 import 'crud_exception.dart';
 
 //Constants for Database
@@ -15,6 +17,8 @@ const userIdColumn = "user_id";
 const titleColumn = "title";
 const textColumn = "text";
 const isSyncedWithCloudColumn = "is_synced_with_cloud";
+const createdColumn = "created_at";
+const updatedColumn = "updated_at";
 
 //Database Queries
 //User Table
@@ -33,26 +37,49 @@ const String createNoteTable =
         $titleColumn TEXT NOT NULL,
         $textColumn TEXT NOT NULL,
         $isSyncedWithCloudColumn INTEGER NOT NULL DEFAULT 0,
+        $createdColumn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        $updatedColumn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY($userIdColumn) REFERENCES $userTable($idColumn) ON DELETE CASCADE
         )''';
+
+const String createUpdateTrigger =
+    '''
+  CREATE TRIGGER IF NOT EXISTS update_note_timestamp
+  AFTER UPDATE ON $noteTable
+  BEGIN
+    UPDATE $noteTable SET $updatedColumn = CURRENT_TIMESTAMP WHERE $idColumn = NEW.$idColumn;
+  END;
+''';
 
 /*Database Structure*/
 class NotesService {
-NotesService._sharedInstance();
-static final NotesService _shared = NotesService._sharedInstance();
-factory NotesService() => _shared;
-
-
   Database? _db;
-
   List<DatabaseNote> _notes = [];
+  static final NotesService _shared = NotesService._sharedInstance();
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
 
-  final _notesStreamController =
-      StreamController<List<DatabaseNote>>.broadcast();
+  NotesService._sharedInstance(){
+    _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
+    onListen: () {
+    _notesStreamController.sink.add(_notes);
+    },
+    );
+  }
+  factory NotesService() => _shared;
 
-  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
+  //Public Stream for UI to listen to
+  Stream<List<DatabaseNote>> get allNotes =>
+      _notesStreamController.stream;
+  //Filter by UserID
+  Stream<List<DatabaseNote>> notesForUser(int userId) {
+    return _notesStreamController.stream.map((_){
+      final allNotes = _notes.where((note) => note.userId == userId).toList();
+      return allNotes;
+    });
+  }
 
-  Future<void> _cacheNotes() async {
-    final allNotes = await getAllNotes();
+  Future<void> _cacheNotes({required int userId}) async {
+    final allNotes = await getAllNotes(userId: userId);
     _notes = allNotes.toList();
     _notesStreamController.add(_notes);
   } //Future<void> _cacheNotes()
@@ -61,15 +88,19 @@ factory NotesService() => _shared;
     required DatabaseNote note,
     required String title,
     required String text,
-  }) async {
+  }) async
+  {
     await _ensureDBIsOpen();
     final db = _getDatabaseOrThrow();
     await getNote(id: note.id); //check if note exists
-    final updatesCount = await db.update(noteTable, {
+    final updatesCount = await db.update(
+        noteTable, {
       titleColumn: title,
       textColumn: text,
       isSyncedWithCloudColumn: 0,
-    });
+    }, where: '$idColumn = ?',
+      whereArgs: [note.id],
+    );
     if (updatesCount == 0) {
       throw CrudException.fromCode('could-not-update-note');
     } else {
@@ -81,10 +112,14 @@ factory NotesService() => _shared;
     }
   } //Future<DatabaseNote> updateNote()
 
-  Future<Iterable<DatabaseNote>> getAllNotes() async {
+  Future<Iterable<DatabaseNote>> getAllNotes({required int userId}) async {
     await _ensureDBIsOpen();
     final db = _getDatabaseOrThrow();
-    final notes = await db.query(noteTable);
+    final notes = await db.query(
+        noteTable,
+      where: '$userIdColumn = ?',
+      whereArgs: [userId],
+    );
     final result = notes.map((noteRow) => DatabaseNote.fromRow(noteRow));
     return result;
   } //Future<Iterable<DatabaseNote>> getAllNotes()
@@ -142,6 +177,8 @@ factory NotesService() => _shared;
       title: title,
       text: text,
       isSyncedWithCloud: true,
+      createdAt: DateTime.now().toString(),
+      updatedAt: DateTime.now().toString(),
     );
 
     _notes.add(note);
@@ -169,16 +206,19 @@ factory NotesService() => _shared;
   Future<DatabaseUser> getOrCreateUser({required String email}) async {
     try {
       final user = await getUser(email: email);
+      await _cacheNotes(userId: user.id);
       return user;
       /* } on CouldNotFindUserException {*/
-    }on CrudException catch (e)   {
+    } on CrudException catch (e) {
       if (e.code != 'could-not-find-user') {
         rethrow;
       }
-
       final createdUser = await createUser(email: email);
+      await _cacheNotes(userId: createdUser.id);
       return createdUser;
-    } catch (e){rethrow;}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
@@ -230,13 +270,13 @@ factory NotesService() => _shared;
   } //Future<void> deleteUser()
 
   // Database Functions
-  Future<void> _ensureDBIsOpen() async{
+  Future<void> _ensureDBIsOpen() async {
     try {
       await open();
-    }on CrudException catch (e)  {
+    } on CrudException catch (e) {
       if (e.code != 'database-already-open') {
         rethrow;
-      }//empty
+      } //empty
     }
   } //Future<void> _ensureDBIsOpen()
 
@@ -244,7 +284,7 @@ factory NotesService() => _shared;
     final db = _db;
     if (db == null) {
       throw CrudException.fromCode('database-not-open');
-      } else {
+    } else {
       return db;
     }
   } // Database _getDatabaseOrThrow()
@@ -266,16 +306,27 @@ factory NotesService() => _shared;
     try {
       final docsPath = await getApplicationDocumentsDirectory();
       final dbPath = join(docsPath.path, dbName);
-      final db = await openDatabase(dbPath);
-      _db = db;
-      //Creating the User Table
-      await db.execute(createUserTable);
-      //Creating the Note Table
-      await db.execute(createNoteTable);
+        _db = await openDatabase(
+          dbPath,
+          version: 1,
+      onCreate: (db, version) async {
+        await db.execute(createUserTable);
+        await db.execute(createNoteTable);
+        await db.execute(createUpdateTrigger);
+      },
 
-      await _cacheNotes();
+      );
+      //Enable Foreign Keys first
+      await _db?.execute("PRAGMA foreign_keys = ON");
+      // //Creating the User Table
+      // await db.execute(createUserTable);
+      // //Creating the Note Table
+      // await db.execute(createNoteTable);
+      // //Creating the Timestamp Trigger
+      // await db.execute(createUpdateTrigger);
+
       // } on MissingPlatformDirectoryException {
-    }on CrudException catch (e) {
+    } on CrudException catch (e) {
       if (e.code != 'missing-platform-directory') {
         rethrow;
       } else {
@@ -293,8 +344,9 @@ class DatabaseUser {
   const DatabaseUser({required this.id, required this.email});
 
   DatabaseUser.fromMap(Map<String, Object?> map)
-    : id = map[idColumn] as int,
-      email = map[emailColumn] as String;
+      : id = map[idColumn] as int,
+        email = (map[emailColumn] ?? '') as String;
+
 
   @override
   String toString() => "User(id: $id, email: $email)";
@@ -312,6 +364,8 @@ class DatabaseNote {
   final String title;
   final String text;
   final bool isSyncedWithCloud;
+  final String createdAt;
+  final String updatedAt;
 
   DatabaseNote({
     required this.id,
@@ -319,16 +373,19 @@ class DatabaseNote {
     required this.title,
     required this.text,
     required this.isSyncedWithCloud,
-  });
+    required this.createdAt,
+    required this.updatedAt,
+  }); //DatabaseNote Constructor
 
   DatabaseNote.fromRow(Map<String, Object?> map)
-    : id = map[idColumn] as int,
-      userId = map[userIdColumn] as int,
-      title = map[titleColumn] as String,
-      text = map[textColumn] as String,
-      isSyncedWithCloud = (map[isSyncedWithCloudColumn] as int) == 1
-          ? true
-          : false;
+      : id = map[idColumn] as int,
+        userId = map[userIdColumn] as int,
+        title = (map[titleColumn] ?? '') as String, // fallback empty string
+        text = (map[textColumn] ?? '') as String,
+        isSyncedWithCloud = (map[isSyncedWithCloudColumn] as int? ?? 0) == 1,
+        createdAt = (map['created_at'] ?? DateTime.now().toIso8601String()) as String,
+        updatedAt = (map['updated_at'] ?? DateTime.now().toIso8601String()) as String;
+
 
   @override
   String toString() {
@@ -337,7 +394,9 @@ class DatabaseNote {
         "userId: $userId, "
         "title: $title, "
         "text: $text, "
-        "isSyncedWithCloud: $isSyncedWithCloud,)";
+        "isSyncedWithCloud: $isSyncedWithCloud,"
+        "createdAt: $createdAt, "
+        "updatedAt: $updatedAt)";
   }
 
   @override
