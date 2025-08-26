@@ -1,11 +1,11 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/ui/custom_app_bar.dart';
-import 'package:infinity_notes/ui/custom_toast.dart';
+import '../ui/custom_app_bar.dart';
+import '../ui/custom_toast.dart';
+import '../ui/dialogs.dart';
 import '../services/auth/auth_exception.dart';
 import '../services/auth/auth_service.dart';
+import '../services/platform/platform_utils.dart';
 import '../constants/routes.dart';
-import '../ui/dialogs.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -77,14 +77,14 @@ class _LoginViewState extends State<LoginView> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
-      await showCustomDialog(
+      await showWarningDialog(
         context: context,
         title: errorTitle,
         message: message,
       );
     } catch (e) {
       if (!mounted) return;
-      await showCustomDialog(
+      await showWarningDialog(
         context: context,
         title: "Unknown Error",
         message: "Unknown Error: $e",
@@ -142,7 +142,7 @@ class _LoginViewState extends State<LoginView> {
                   onPressed: () async {
                     final email = emailController.text.trim();
                     if (email.isEmpty) {
-                      showCustomDialog(
+                      showWarningDialog(
                         context: context,
                         title: "Insert Email",
                         message: "Please enter your email to reset password",
@@ -152,7 +152,7 @@ class _LoginViewState extends State<LoginView> {
                     try {
                       await auth.sendPasswordReset(email: email,);
                       if (!mounted) return;
-                      showCustomDialog(
+                      showWarningDialog(
                         context: context,
                         title: "Reset Email Sent",
                         message:
@@ -207,7 +207,7 @@ class _LoginViewState extends State<LoginView> {
                       if (e.code == 'cancelled') {
                         return;
                       } else {
-                        await showCustomDialog(
+                        await showWarningDialog(
                           context: context,
                           title: "Google Sign-In Failed",
                           message: e.toString(),
@@ -225,7 +225,7 @@ class _LoginViewState extends State<LoginView> {
                 ),
 
                 // Only add spacing + Apple button if on iOS
-                if (Platform.isIOS) ...[
+                if (PlatformUtils.isIOS) ...[
                   const SizedBox(width: 40),
                   GestureDetector(
                     onTap: () async {
@@ -245,7 +245,7 @@ class _LoginViewState extends State<LoginView> {
                         }
                       } catch (e) {
                         if (!mounted) return;
-                        await showCustomDialog(
+                        await showWarningDialog(
                           context: context,
                           title: "Apple Sign-In Failed",
                           message: e.toString(),

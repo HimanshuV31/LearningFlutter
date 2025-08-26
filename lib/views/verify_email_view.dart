@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/ui/custom_app_bar.dart';
-
 import '../constants/routes.dart';
 import '../services/auth/auth_exception.dart';
 import '../ui/dialogs.dart';
@@ -36,13 +35,13 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
-      await showCustomDialog(
+      await showWarningDialog(
         context: context,
         title: errorTitle,
         message: message,
       );
     } catch (e) {
-      await showCustomDialog(
+      await showWarningDialog(
         context: context,
         title: "Unknown Error",
         message: "Unknown Error: $e",

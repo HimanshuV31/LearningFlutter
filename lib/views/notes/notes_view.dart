@@ -1,15 +1,13 @@
-import 'dart:io';
+import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:infinity_notes/enums/menu_actions.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/crud/notes_service.dart';
 import 'package:infinity_notes/ui/custom_app_bar.dart';
 import 'package:infinity_notes/ui/custom_toast.dart';
 import 'package:infinity_notes/ui/dialogs.dart';
+import 'package:infinity_notes/views/notes/notes_tile_view.dart';
 
 import '../../constants/routes.dart';
 
@@ -24,6 +22,23 @@ class _NotesViewState extends State<NotesView> {
   String get userEmail => AuthService.firebase().currentUser!.email!;
   late final NotesService _notesService;
 
+  Future<void> newNote() async {
+    await Navigator.of(context).pushNamed(newNoteRoute);
+  }
+
+  Future<void> openNote(DatabaseNote note) async {
+    await Navigator.of(context).pushNamed(newNoteRoute, arguments: note);
+  }
+
+  Future<void> deleteNote(DatabaseNote note) async {
+    final shouldDelete = await showDeleteDialog(context: context);
+    if (shouldDelete) {
+      await _notesService.deleteNote(id: note.id);
+      if (!mounted) return;
+      showCustomToast(context, "Note Deleted");
+    }
+  }
+
   @override
   void initState() {
     _notesService = NotesService();
@@ -31,21 +46,10 @@ class _NotesViewState extends State<NotesView> {
     super.initState();
   }
 
-  int _getCrossAxisCount() {
-    if (kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      return 4;
-    }
-    return 2; // Mobile platforms
-  }
-
   @override
   void dispose() {
     _notesService.close();
     super.dispose();
-  }
-
-  Future<void> newNote() async {
-    await Navigator.of(context).pushNamed(newNoteRoute);
   }
 
   @override
@@ -69,19 +73,15 @@ class _NotesViewState extends State<NotesView> {
             onSelected: (value) async {
               switch (value) {
                 case MenuAction.logout:
-                  final shouldLogout = await showLogoutDialog(context);
+                  final shouldLogout = await showLogoutDialog(context: context);
                   if (!mounted) return;
                   if (!shouldLogout) return;
-                  if (shouldLogout) {
-                    await FirebaseAuth.instance.signOut();
-                    if (!mounted) return;
-                    if (mounted) {
-                      showCustomToast(context, "Logout Successful");
-                      Navigator.of(
-                        context,
-                      ).pushNamedAndRemoveUntil(loginRoute, (_) => false);
-                    }
-                  }
+                  await AuthService.firebase().signOut();
+                  if (!mounted) return;
+                  showCustomToast(context, "Logout Successful");
+                  Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil(loginRoute, (_) => false);
                   break;
               }
             },
@@ -136,34 +136,27 @@ class _NotesViewState extends State<NotesView> {
                           }
 
                           //Notes in Display
-                          return MasonryGridView.count(
-                            crossAxisCount: _getCrossAxisCount(),
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
-                            itemCount: realNotes.length,
-                            padding: const EdgeInsets.all(10),
-                            // shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              final note = realNotes[index];
-                              return _NoteTile(
-                                note: note,
-                                onTap: () async {
-                                  await Navigator.of(
-                                    context,
-                                  ).pushNamed(newNoteRoute, arguments: note);
+                          //Options can be provided of List and Tile views based using
+                          //the commented code below. The args is for demo.
+                          /*
+                            SwitchListTile(
+                                value: year2023,
+                                title: year2023
+                                  ? /* ListView */
+                                  : /* TileView */,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    year2023 = !year2023;
+                                  });
                                 },
-                                onLongPress: () async {
-                                  final shouldDelete = await showDeleteDialog(
-                                    context: context,
-                                  );
-                                  if (shouldDelete) {
-                                    await _notesService.deleteNote(id: note.id);
-                                    if (!mounted) return;
-                                    showCustomToast(context, "Note Deleted");
-                                  }
-                                },
-                              );
-                            },
+                             ),
+                          */
+                          return NotesTileView(
+                            notes: realNotes,
+                            onTapNote: (DatabaseNote note) => openNote(note),
+                            onLongPressNote: (DatabaseNote note) =>
+                                deleteNote(note),
+                            /* onDeleteNote: (DatabaseNote note) {  },*/
                           );
                         } else {
                           return const Center(child: Text("No notes found."));
@@ -184,87 +177,3 @@ class _NotesViewState extends State<NotesView> {
     );
   }
 }
-
-class _NoteTile extends StatelessWidget {
-  const _NoteTile({required this.note, this.onTap, this.onLongPress});
-
-  final DatabaseNote note;
-  static const maxTextLines = 10;
-  final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
-
-  @override
-  Widget build(BuildContext context) {
-    const backgroundColor = Color(0xFF3993ad);
-    const foregroundColor = Colors.transparent;
-    final hasText = note.text.trim().isNotEmpty;
-
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: Container(
-        decoration: BoxDecoration(
-          color: foregroundColor,
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: backgroundColor, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 5,
-              offset: Offset(1, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              note.title.isEmpty ? "Untitled" : note.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            if (hasText) ...[
-              const SizedBox(height: 4),
-              Flexible(
-                child: Text(
-                  note.text,
-                  maxLines: maxTextLines,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, color: Colors.black),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-Future<bool> showLogoutDialog(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to Logout?"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            child: const Text("Logout"),
-          ),
-        ],
-      );
-    },
-  ).then((value) => value ?? false);
-} // Future<bool> showLogoutDialog()

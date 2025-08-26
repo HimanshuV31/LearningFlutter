@@ -1,5 +1,3 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers
-
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/auth/auth_exception.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
@@ -92,7 +90,7 @@ class _RegisterViewState extends State<RegisterView> {
       final authError = AuthException.fromCode(e.code);
       String message = authError.message;
       String errorTitle = authError.title;
-      await showCustomDialog(
+      await showWarningDialog(
         context: context,
         title: errorTitle,
         message: message,
@@ -102,7 +100,7 @@ class _RegisterViewState extends State<RegisterView> {
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
-      await showCustomDialog(
+      await showWarningDialog(
         context: context,
         title: "Unknown Error",
         message: "Unknown Error: $e",

@@ -61,7 +61,7 @@ class NotesService {
   NotesService._sharedInstance(){
     _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
     onListen: () {
-    _notesStreamController.sink.add(_notes);
+        _notesStreamController.sink.add(_notes);
     },
     );
   }
