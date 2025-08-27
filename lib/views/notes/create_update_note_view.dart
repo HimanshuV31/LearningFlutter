@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/services/auth/auth_service.dart';
-import 'package:infinity_notes/services/crud/notes_service.dart';
-import 'package:infinity_notes/ui/custom_app_bar.dart';
-import 'package:infinity_notes/ui/dialogs.dart';
+import '../../services/auth/auth_service.dart';
+import '../../services/crud/notes_service.dart';
+import '../../utilities/generics/ui/custom_app_bar.dart';
+import '../../utilities/generics/ui/dialogs.dart';
 
-class NewNoteView extends StatefulWidget {
-  const NewNoteView({super.key});
+class CreateUpdateNoteView extends StatefulWidget {
+  const CreateUpdateNoteView({super.key});
 
   @override
-  State<NewNoteView> createState() => _NewNoteViewState();
+  State<CreateUpdateNoteView> createState() => _CreateUpdateNoteViewState();
 }
 
-class _NewNoteViewState extends State<NewNoteView> {
+class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   Color backgroundColor = const Color(0xFF62B0D5);
   Color foregroundColor = Colors.white;
 

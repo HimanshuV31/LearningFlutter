@@ -1,15 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import '../../services/crud/notes_service.dart';
 import '../../services/platform/platform_utils.dart';
 
-
-// typedef DeleteNoteCallback = void Function(DatabaseNote note);
-
 class NotesTileView extends StatelessWidget {
   final List<DatabaseNote> notes;
-  /* final DeleteNoteCallback onDeleteNote;*/
   final Function(DatabaseNote) onTapNote;
   final Function(DatabaseNote) onLongPressNote;
 
@@ -18,7 +15,6 @@ class NotesTileView extends StatelessWidget {
     required this.onTapNote,
     required this.onLongPressNote
   });
-
 
   //Methods
   int _getCrossAxisCount() {
@@ -36,7 +32,7 @@ class NotesTileView extends StatelessWidget {
       mainAxisSpacing: 8,
       itemCount: notes.length,
       padding: const EdgeInsets.all(10),
-      // shrinkWrap: true,
+      shrinkWrap: true,
       itemBuilder: (context, index) {
         final note = notes[index];
         return _NoteTile(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../ui/custom_app_bar.dart';
-import '../ui/custom_toast.dart';
-import '../ui/dialogs.dart';
+import '../utilities/generics/ui/custom_app_bar.dart';
+import '../utilities/generics/ui/custom_toast.dart';
+import '../utilities/generics/ui/dialogs.dart';
 import '../services/auth/auth_exception.dart';
 import '../services/auth/auth_service.dart';
 import '../services/platform/platform_utils.dart';

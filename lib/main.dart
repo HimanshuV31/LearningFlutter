@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/services/auth/auth_service.dart';
+import 'services/auth/auth_service.dart';
 import 'constants/routes.dart';
 import 'views/startup_view.dart';
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/verify_email_view.dart';
 import 'views/notes/notes_view.dart';
-import 'views/notes/new_note_view.dart';
+import 'views/notes/create_update_note_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
         notesRoute: (context) => const NotesView(),
-        newNoteRoute: (context) => const NewNoteView(),
+        CreateUpdateNoteRoute: (context) => const CreateUpdateNoteView(),
       },
     );
   }

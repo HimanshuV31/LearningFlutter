@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/services/auth/auth_exception.dart';
-import 'package:infinity_notes/services/auth/auth_service.dart';
-import 'package:infinity_notes/ui/custom_app_bar.dart';
-import '../ui/dialogs.dart';
+import '../services/auth/auth_exception.dart';
+import '../services/auth/auth_service.dart';
+import '../utilities/generics/ui/custom_app_bar.dart';
+import '../utilities/generics/ui/dialogs.dart';
 import '../constants/routes.dart';
 
 class RegisterView extends StatefulWidget {

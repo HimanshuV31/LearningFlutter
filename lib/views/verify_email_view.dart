@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/services/auth/auth_service.dart';
-import 'package:infinity_notes/ui/custom_app_bar.dart';
+import '../services/auth/auth_service.dart';
+import '../utilities/generics/ui/custom_app_bar.dart';
 import '../constants/routes.dart';
 import '../services/auth/auth_exception.dart';
-import '../ui/dialogs.dart';
+import '../utilities/generics/ui/dialogs.dart';
 
 class VerifyEmailView extends StatefulWidget {
   const VerifyEmailView({super.key});

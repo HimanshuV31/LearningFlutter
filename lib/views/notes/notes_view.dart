@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/enums/menu_actions.dart';
-import 'package:infinity_notes/services/auth/auth_service.dart';
-import 'package:infinity_notes/services/crud/notes_service.dart';
-import 'package:infinity_notes/ui/custom_app_bar.dart';
-import 'package:infinity_notes/ui/custom_toast.dart';
-import 'package:infinity_notes/ui/dialogs.dart';
-import 'package:infinity_notes/views/notes/notes_tile_view.dart';
-
+import '../../enums/menu_actions.dart';
+import '../../services/auth/auth_service.dart';
+import '../../services/crud/notes_service.dart';
+import '../../utilities/generics/ui/custom_app_bar.dart';
+import '../../utilities/generics/ui/custom_toast.dart';
+import '../../utilities/generics/ui/dialogs.dart';
+import '../../views/notes/notes_tile_view.dart';
 import '../../constants/routes.dart';
 
 class NotesView extends StatefulWidget {
@@ -23,11 +22,11 @@ class _NotesViewState extends State<NotesView> {
   late final NotesService _notesService;
 
   Future<void> newNote() async {
-    await Navigator.of(context).pushNamed(newNoteRoute);
+    await Navigator.of(context).pushNamed(CreateUpdateNoteRoute);
   }
 
   Future<void> openNote(DatabaseNote note) async {
-    await Navigator.of(context).pushNamed(newNoteRoute, arguments: note);
+    await Navigator.of(context).pushNamed(CreateUpdateNoteRoute, arguments: note);
   }
 
   Future<void> deleteNote(DatabaseNote note) async {
