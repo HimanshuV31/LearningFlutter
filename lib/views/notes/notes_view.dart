@@ -1,14 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../enums/menu_actions.dart';
-import '../../services/auth/auth_service.dart';
-import '../../services/crud/notes_service.dart';
-import '../../utilities/generics/ui/custom_app_bar.dart';
-import '../../utilities/generics/ui/custom_toast.dart';
-import '../../utilities/generics/ui/dialogs.dart';
-import '../../views/notes/notes_tile_view.dart';
-import '../../constants/routes.dart';
+import 'package:infinity_notes/constants/routes.dart';
+import 'package:infinity_notes/enums/menu_actions.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
+import 'package:infinity_notes/services/crud/notes_service.dart';
+import 'package:infinity_notes/utilities/generics/ui/background_image.dart';
+import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
+import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
+import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
+import 'package:infinity_notes/utilities/generics/ui/icon_toggle_switch.dart';
+import 'package:infinity_notes/views/notes/notes_list_view.dart';
+import 'package:infinity_notes/views/notes/notes_tile_view.dart';
+
 
 class NotesView extends StatefulWidget {
   const NotesView({super.key});
@@ -38,6 +42,8 @@ class _NotesViewState extends State<NotesView> {
     }
   }
 
+  late bool _showListView = false;
+
   @override
   void initState() {
     _notesService = NotesService();
@@ -56,17 +62,40 @@ class _NotesViewState extends State<NotesView> {
     const backgroundColor = Color(0xFF3993ad);
     const foregroundColor = Colors.white;
     final _userEmail = AuthService.firebase().currentUser?.email;
-    return Scaffold(
+    return Stack(
+      children: [
+        const BackgroundImage(),
+      Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: CustomAppBar(
         title: "Infinity Notes | Notes",
         backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
+        themeColor: Colors.black26,
         actions: [
           Tooltip(
             message: "New Note",
             child: IconButton(onPressed: newNote, icon: Icon(Icons.add)),
           ),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: IconToggleSwitch(
+              value: _showListView,
+              onChanged: (value) {
+                setState(() {
+                  _showListView = value;
+                });
+              },
+              activeIcon: Icons.list_rounded,
+              inactiveIcon: Icons.grid_view,
+              activeColor: Colors.cyan,
+              inactiveColor: Colors.blue,
+              width: 70,
+              height: 40,
+              toggleSize: 33,
+            ),
 
+
+          ),
           PopupMenuButton<MenuAction>(
             icon: const Icon(Icons.menu_rounded),
             onSelected: (value) async {
@@ -95,7 +124,8 @@ class _NotesViewState extends State<NotesView> {
           ),
         ],
       ),
-      body: FutureBuilder<DatabaseUser>(
+      body: SafeArea(
+      child: FutureBuilder<DatabaseUser>(
         future: _notesService.getOrCreateUser(email: userEmail),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
@@ -104,7 +134,6 @@ class _NotesViewState extends State<NotesView> {
                 return Center(child: Text(snapshot.error.toString()));
               } else if (snapshot.hasData) {
                 final user = snapshot.data!; // 👈 got DatabaseUser
-
                 return StreamBuilder(
                   stream: _notesService.notesForUser(user.id),
                   builder: (context, snapshot) {
@@ -134,29 +163,19 @@ class _NotesViewState extends State<NotesView> {
                             );
                           }
 
-                          //Notes in Display
-                          //Options can be provided of List and Tile views based using
-                          //the commented code below. The args is for demo.
-                          /*
-                            SwitchListTile(
-                                value: year2023,
-                                title: year2023
-                                  ? /* ListView */
-                                  : /* TileView */,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    year2023 = !year2023;
-                                  });
-                                },
-                             ),
-                          */
-                          return NotesTileView(
-                            notes: realNotes,
-                            onTapNote: (DatabaseNote note) => openNote(note),
-                            onLongPressNote: (DatabaseNote note) =>
-                                deleteNote(note),
-                            /* onDeleteNote: (DatabaseNote note) {  },*/
-                          );
+                          if(_showListView){
+                            return NotesListView(
+                              notes: realNotes,
+                              onTapNote: openNote,
+                              onLongPressNote: deleteNote,
+                            );
+                          }else{
+                            return NotesTileView(
+                              notes: realNotes,
+                              onTapNote: openNote,
+                              onLongPressNote: deleteNote,
+                            );
+                          }
                         } else {
                           return const Center(child: Text("No notes found."));
                         }
@@ -169,10 +188,13 @@ class _NotesViewState extends State<NotesView> {
                 return const Center(child: Text("Error loading user"));
               }
             default:
-              return const CircularProgressIndicator();
+              return const Center(child:CircularProgressIndicator());
           }
         },
       ) /*FutureBuilder*/,
+    ),
+      ),
+      ],
     );
   }
 }

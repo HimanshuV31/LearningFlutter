@@ -55,7 +55,7 @@ class _NoteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const backgroundColor = Color(0xFF3993ad);
-    const foregroundColor = Colors.transparent;
+    const foregroundColor = Colors.white60;
     final hasText = note.text.trim().isNotEmpty;
 
     return GestureDetector(
