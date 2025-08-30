@@ -64,7 +64,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
 
       // These lines will be executed if there's a change in title or text
       final currentUser = AuthService.firebase().currentUser!;
-      final email = currentUser.email!;
+      final email = currentUser.email;
       final owner = await _notesService.getUser(email: email);
       // Create note once, after user enters any non empty text
       if ((title.isNotEmpty || text.isNotEmpty) && _note == null) {
