@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
+import 'package:infinity_notes/services/notes_actions/handle_long_press_note.dart';
 import 'package:infinity_notes/constants/routes.dart';
 import 'package:infinity_notes/enums/menu_actions.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
+// import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
-import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/utilities/generics/ui/background_image.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
@@ -38,16 +40,6 @@ class _NotesViewState extends State<NotesView> {
     await Navigator.of(
       context,
     ).pushNamed(CreateUpdateNoteRoute, arguments: note);
-  }
-
-  // Future<void> deleteNote(DatabaseNote note) async {
-  Future<void> deleteNote(CloudNote note) async {
-    final shouldDelete = await showDeleteDialog(context: context);
-    if (shouldDelete) {
-      await _notesService.deleteNote(documentId: note.documentId);
-      if (!mounted) return;
-      showCustomToast(context, "Note Deleted");
-    }
   }
 
   late bool _showListView = false;
@@ -145,7 +137,9 @@ class _NotesViewState extends State<NotesView> {
                 //         } else if (snapshot.hasData) {
                 //           final user = snapshot.data!; // 👈 got DatabaseUser
                 FutureBuilder<Stream<Iterable<CloudNote>>>(
-                  future: _notesService.allNotes(ownerUserId: userId),
+                  future:
+                      _notesService.allNotes(ownerUserId: userId)
+                          as Future<Stream<Iterable<CloudNote>>>?,
                   builder: (context, futureSnapshot) {
                     if (futureSnapshot.connectionState !=
                         ConnectionState.done) {
@@ -169,7 +163,8 @@ class _NotesViewState extends State<NotesView> {
                           case ConnectionState.waiting:
                           case ConnectionState.active:
                             if (snapshot.hasData) {
-                              final allNotes =snapshot.data;/* as List<DatabaseNote>;  //👈 your note model*/
+                              final allNotes = snapshot
+                                  .data; /* as List<DatabaseNote>;  //👈 your note model*/
 
                               // //Filter
                               // final realNotes = allNotes
@@ -197,14 +192,22 @@ class _NotesViewState extends State<NotesView> {
                                   // notes: realNotes,
                                   notes: allNotes,
                                   onTapNote: (note) => openNote(note),
-                                  onLongPressNote: (note) => deleteNote(note),
-                                );
+                                  onLongPressNote: (note) => handleLongPressNote(
+                                      context: context,
+                                      note: note,
+                                      notesService :_notesService,
+                                    ),
+                                  );
                               } else {
                                 return NotesTileView(
                                   // notes: realNotes,
                                   notes: allNotes,
                                   onTapNote: (note) => openNote(note),
-                                  onLongPressNote: (note) => deleteNote(note),
+                                  onLongPressNote: (note) => handleLongPressNote(
+                        context: context,
+                        note: note,
+                        notesService :_notesService,
+                        ),
                                 );
                               }
                             } else {

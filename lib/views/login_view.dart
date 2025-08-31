@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../utilities/generics/ui/custom_app_bar.dart';
-import '../utilities/generics/ui/custom_toast.dart';
-import '../utilities/generics/ui/dialogs.dart';
-import '../services/auth/auth_exception.dart';
-import '../services/auth/auth_service.dart';
-import '../services/platform/platform_utils.dart';
-import '../constants/routes.dart';
+import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
+import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
+import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
+import 'package:infinity_notes/services/auth/auth_exception.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
+import 'package:infinity_notes/services/platform/platform_utils.dart';
+import 'package:infinity_notes/constants/routes.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});

@@ -4,8 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-
-import 'crud_exception.dart';
+import 'package:infinity_notes/services/crud/crud_exception.dart';
 
 //Constants for Database
 const dbName = "notes.db";

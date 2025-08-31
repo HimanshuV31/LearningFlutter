@@ -1,12 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../services/auth/auth_service.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
+import 'package:infinity_notes/services/cloud/cloud_note.dart';
+import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
+import 'package:infinity_notes/services/notes_actions/delete_note.dart';
+import 'package:infinity_notes/services/notes_actions/share.dart';
+import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
+import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 // import '../../services/crud/notes_service.dart';
-import '../../utilities/generics/ui/custom_app_bar.dart';
-import '../../utilities/generics/ui/dialogs.dart';
-import '../../services/cloud/cloud_note.dart';
-// import '../../services/cloud/cloud_storage_exceptions.dart';
-import '../../services/cloud/firebase_cloud_storage.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -20,6 +22,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   final Color foregroundColor = Colors.white;
 
   CloudNote? _note;
+
   // DatabaseNote? _note;
 
   // late final NotesService _notesService;
@@ -81,14 +84,15 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       await _createNote(userId, title, text);
       return;
     }
-
-    if (_note != null) {
-      if (title.isEmpty && text.isEmpty) {
-        await _deleteNote();
-        return;
-      }
-      await _updateNote(title, text);
+    if (_note != null && title.isEmpty && text.isEmpty) {
+      await deleteNote(
+        context: context,
+        note: _note!,
+        notesService: _notesService,
+      );
+      return;
     }
+    await _updateNote(title, text);
   }
 
   Future<void> _createNote(String userId, String title, String text) async {
@@ -100,9 +104,9 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     //   text: text,
     // );
     final newNote = await _notesService.createNewNote(
-        ownerUserId: userId,
-        title: title,
-        text: text,
+      ownerUserId: userId,
+      title: title,
+      text: text,
     );
     setState(() {
       _note = newNote;
@@ -127,16 +131,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       _initialText = text;
       // If updateNote returns updated note, assign here:
       // _note = updatedNote;
-    });
-  }
-
-  Future<void> _deleteNote() async {
-    // await _notesService.deleteNote(id: _note!.id);
-    await _notesService.deleteNote(documentId: _note!.documentId);
-    setState(() {
-      _note = null;
-      _initialTitle = "";
-      _initialText = "";
     });
   }
 
@@ -181,12 +175,28 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
         actions: [
+          IconButton(
+            onPressed: () async {
+              if (_note == null ||
+                  _titleController.text.isEmpty ||
+                  _textController.text.isEmpty) {
+                await showCannotShareEmptyNoteDialog(context);
+              } else {
+                shareNote(context: context, note: _note!);
+              }
+            },
+            icon: const Icon(Icons.share, color: Colors.white),
+          ),
           PopupMenuButton<String>(
             onSelected: (value) async {
               if (value == "delete" && _note != null) {
                 final delete = await showDeleteDialog(context: context);
                 if (delete) {
-                  await _deleteNote();
+                  await deleteNote(
+                    context: context,
+                    note: _note!,
+                    notesService: _notesService,
+                  );
                   if (!mounted) return;
                   Navigator.of(context).pop();
                 }

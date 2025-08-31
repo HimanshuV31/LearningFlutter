@@ -1,7 +1,5 @@
 import 'package:infinity_notes/services/auth/auth_user.dart' as local_auth;
-
 import 'auth_provider.dart'as local_auth;
-
 import 'firebase_auth_provider.dart';
 
 class AuthService implements local_auth.AuthProvider {

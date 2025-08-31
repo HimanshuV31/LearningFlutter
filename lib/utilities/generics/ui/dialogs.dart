@@ -10,6 +10,7 @@ class DialogOption<T> {
   DialogOption({this.value, this.style,this.textColor});
 }
 
+// (PRIVATE) Generic Dialog
 Future<T?> _showGenericDialog<T>({
   required BuildContext context,
   required String title,
@@ -18,7 +19,6 @@ Future<T?> _showGenericDialog<T>({
 })
 {
   final options = optionBuilder();
-
   return showDialog<T>(
     context: context,
     builder: (context) {
@@ -49,7 +49,6 @@ Future<T?> _showGenericDialog<T>({
   ); //return showDialog
 }
 
-
 //Delete Dialog
 Future<bool> showDeleteDialog({required BuildContext context}) {
   return _showGenericDialog<bool>(
@@ -74,13 +73,12 @@ Future<bool> showDeleteDialog({required BuildContext context}) {
   ).then((value) => value ?? false);
 }
 
-
 //Warning Dialog
 Future<void> showWarningDialog({
     required BuildContext context,
     required String title,
-    required String message,
-}) {
+    required String message,})
+{
   return _showGenericDialog<void>(
       context: context,
       title: title,
@@ -92,7 +90,6 @@ Future<void> showWarningDialog({
 }
 
 //Logout Dialog
-
 Future<bool> showLogoutDialog ({required BuildContext context}){
   return _showGenericDialog<bool>(
     context: context,
@@ -110,4 +107,16 @@ Future<bool> showLogoutDialog ({required BuildContext context}){
       ),
     },
   ).then((value) => value ?? false);
+}
+
+//Can't share empty Notes
+Future<void> showCannotShareEmptyNoteDialog(BuildContext context){
+  return _showGenericDialog<void>(
+      context: context,
+      title: "Can't Share Empty Notes",
+      content: 'Error while sharing an empty note. Please select a non-empty note to share.',
+      optionBuilder: ()=> {
+        "OK": DialogOption<void>(value: null),
+      }
+  );
 }

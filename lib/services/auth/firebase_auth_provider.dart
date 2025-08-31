@@ -8,7 +8,7 @@ import 'package:infinity_notes/services/auth/auth_provider.dart';
 import 'package:infinity_notes/services/auth/auth_user.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
-import '../../firebase_options.dart';
+import 'package:infinity_notes/firebase_options.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
   @override

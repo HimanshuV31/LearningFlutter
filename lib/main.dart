@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'services/auth/auth_service.dart';
 import 'constants/routes.dart';
-import 'views/startup_view.dart';
-import 'views/login_view.dart';
-import 'views/register_view.dart';
-import 'views/verify_email_view.dart';
-import 'views/notes/notes_view.dart';
-import 'views/notes/create_update_note_view.dart';
+import 'package:infinity_notes/views/startup_view.dart';
+import 'package:infinity_notes/views/login_view.dart';
+import 'package:infinity_notes/views/register_view.dart';
+import 'package:infinity_notes/views/verify_email_view.dart';
+import 'package:infinity_notes/views/notes/notes_view.dart';
+import 'package:infinity_notes/views/notes/create_update_note_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
