@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'cloud_note.dart';
 import 'cloud_storage_constants.dart';
 import 'cloud_storage_exceptions.dart';
@@ -8,7 +7,7 @@ class FirebaseCloudStorage {
   //Constants and Declarations
   final notes = FirebaseFirestore.instance.collection('notes');
   static final FirebaseCloudStorage _shared =
-      FirebaseCloudStorage._sharedInstance();
+  FirebaseCloudStorage._sharedInstance();
 
   //singleton constructor
   FirebaseCloudStorage._sharedInstance();
@@ -16,15 +15,27 @@ class FirebaseCloudStorage {
   factory FirebaseCloudStorage() => _shared;
 
   //Methods
-  void createNewNote({required String ownerUserId}) async {
+  Future<CloudNote> createNewNote({required String ownerUserId,
+    String title = "",
+    String text = ""}) async {
     try {
-      notes.add({
+      final document = await notes.add({
         ownerUserIdFieldName: ownerUserId,
-        titleFieldName: '',
-        textFieldName: '',
+        titleFieldName: title,
+        textFieldName: text,
       });
-    } catch (e) {
-      throw CouldNotCreateNoteException();
+
+      final fetchedNote = await document.get();
+      return CloudNote(
+          documentId: fetchedNote.id,
+          ownerUserId: ownerUserId,
+          title: fetchedNote.data()![titleFieldName] ?? "",
+          text: fetchedNote.data()![textFieldName] ?? "");
+    } on FirebaseException catch (e) {
+      if (e.plugin == "cloud_firestore") {
+        throw CloudStorageException.fromCode(e.code);
+      }
+      rethrow;
     }
   }
 
@@ -34,25 +45,27 @@ class FirebaseCloudStorage {
           .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
           .get()
           .then((value) {
-            return value.docs.map((doc) {
-              return CloudNote(
-                documentId: doc.id,
-                ownerUserId: doc.data()[ownerUserIdFieldName] as String,
-                title: doc.data()[titleFieldName] as String,
-                text: doc.data()[textFieldName] as String,
-              );
-            });
-          });
-    } catch (e) {
-      throw CouldNotGetAllNotesException();
+        return value.docs.map((doc) {
+          return CloudNote.fromSnapshot(doc);
+        });
+      });
+    } on FirebaseException catch (e) {
+      if (e.plugin == "cloud_firestore") {
+        throw CloudStorageException.fromCode(e.code);
+      }
+      rethrow;
     }
   }
 
-  Future<Stream<Iterable<CloudNote>>> allNotes({required String ownerUserId}) async {
+
+  Future<Stream<Iterable<CloudNote>>> allNotes({
+    required String ownerUserId,
+  }) async {
     return notes.snapshots().map(
-      (event) => event.docs
-          .map((doc) => CloudNote.fromSnapshot(doc))
-          .where((note) => note.ownerUserId == ownerUserId),
+          (event) =>
+          event.docs
+              .map((doc) => CloudNote.fromSnapshot(doc))
+              .where((note) => note.ownerUserId == ownerUserId),
     );
   }
 
@@ -66,16 +79,24 @@ class FirebaseCloudStorage {
         titleFieldName: title,
         textFieldName: text,
       });
-    } catch (e) {
-      throw CouldNotUpdateNoteException();
+    } on FirebaseException catch (e) {
+      if (e.plugin == "cloud_firestore") {
+        throw CloudStorageException.fromCode(e.code);
+      }
+      rethrow;
     }
   }
+
 
   Future<void> deleteNote({required String documentId}) async {
     try {
       await notes.doc(documentId).delete();
-    } catch (e) {
-      throw CouldNotDeleteNoteException();
+    } on FirebaseException catch (e) {
+      if (e.plugin == "cloud_firestore") {
+        throw CloudStorageException.fromCode(e.code);
+      }
+      rethrow;
     }
   }
+
 }

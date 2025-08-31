@@ -1,13 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import '../../services/crud/notes_service.dart';
+import 'package:infinity_notes/services/cloud/cloud_note.dart';
+// import '../../services/crud/notes_service.dart';
 import '../../services/platform/platform_utils.dart';
 
 class NotesListView extends StatelessWidget {
-  final List<DatabaseNote> notes;
-  final Function(DatabaseNote) onTapNote;
-  final Function(DatabaseNote) onLongPressNote;
+  // final List<DatabaseNote> notes;
+  // final Function(DatabaseNote) onLongPressNote;
+  // final Function(DatabaseNote) onTapNote;
+  final Iterable<CloudNote> notes;
+  final Function(CloudNote) onTapNote;
+  final Function(CloudNote) onLongPressNote;
 
   const NotesListView({
     super.key,
@@ -17,7 +19,7 @@ class NotesListView extends StatelessWidget {
   });
 
   int _getCrossAxisCount() {
-    if (kIsWeb ||
+    if (PlatformUtils.isWeb ||
         PlatformUtils.isWindows ||
         PlatformUtils.isMacOS ||
         PlatformUtils.isLinux) return 3;
@@ -35,7 +37,8 @@ class NotesListView extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          final note = notes[index];
+          // final note = notes[index];
+          final note = notes.elementAt(index);
           return NoteListTile(
             note: note,
             onTap: () => onTapNote(note),
@@ -57,7 +60,7 @@ class NotesListView extends StatelessWidget {
           childAspectRatio: 2.5,
         ),
         itemBuilder: (context, index) {
-          final note = notes[index];
+          final note = notes.elementAt(index);
           return NoteListTile(
             note: note,
             onTap: () => onTapNote(note),
@@ -70,7 +73,8 @@ class NotesListView extends StatelessWidget {
 }
 
 class NoteListTile extends StatelessWidget {
-  final DatabaseNote note;
+  // final DatabaseNote note;
+  final CloudNote note;
   final  onTap;
   final  onLongPress;
 
@@ -107,14 +111,13 @@ class NoteListTile extends StatelessWidget {
                 note.title.isEmpty ? "Untitled" : note.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4),
               Text(
                 note.text,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, color: Colors.black),
+                style: const TextStyle(fontSize: 17, color: Colors.black),
               ),
             ],
           ),

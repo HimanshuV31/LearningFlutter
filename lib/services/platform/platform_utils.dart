@@ -1,5 +1,3 @@
-// lib/utils/platform_utils.dart
-
 import 'package:flutter/foundation.dart';
 
 /// Fool-proof, robust, cross-platform utils for safe Flutter platform detection.

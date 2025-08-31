@@ -1,14 +1,17 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-
-import '../../services/crud/notes_service.dart';
+import 'package:infinity_notes/services/cloud/cloud_note.dart';
+// import '../../services/crud/notes_service.dart';
 import '../../services/platform/platform_utils.dart';
 
 class NotesTileView extends StatelessWidget {
-  final List<DatabaseNote> notes;
-  final Function(DatabaseNote) onTapNote;
-  final Function(DatabaseNote) onLongPressNote;
+  // final List<DatabaseNote> notes;
+  // final Function(DatabaseNote) onTapNote;
+  // final Function(DatabaseNote) onLongPressNote;
+
+  final Iterable<CloudNote> notes;
+  final Function(CloudNote) onTapNote;
+  final Function(CloudNote) onLongPressNote;
 
   const NotesTileView({super.key,
     required this.notes,
@@ -18,8 +21,10 @@ class NotesTileView extends StatelessWidget {
 
   //Methods
   int _getCrossAxisCount() {
-    if (kIsWeb || PlatformUtils.isWindows
-        || PlatformUtils.isMacOS || PlatformUtils.isLinux) return 4;
+    if (   PlatformUtils.isWeb
+        || PlatformUtils.isWindows
+        || PlatformUtils.isMacOS
+        || PlatformUtils.isLinux) return 4;
     return 2; // Mobile platforms
   }
 
@@ -34,7 +39,7 @@ class NotesTileView extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       shrinkWrap: true,
       itemBuilder: (context, index) {
-        final note = notes[index];
+        final note = notes.elementAt(index);
         return _NoteTile(
           note: note,
           onTap: ()=> onTapNote(note),
@@ -47,7 +52,8 @@ class NotesTileView extends StatelessWidget {
 class _NoteTile extends StatelessWidget {
   const _NoteTile({required this.note, this.onTap, this.onLongPress});
 
-  final DatabaseNote note;
+  // final DatabaseNote note;
+  final CloudNote note;
   static const maxTextLines = 10;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
@@ -82,16 +88,15 @@ class _NoteTile extends StatelessWidget {
               note.title.isEmpty ? "Untitled" : note.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
             ),
             if (hasText) ...[
-              const SizedBox(height: 4),
               Flexible(
                 child: Text(
                   note.text,
                   maxLines: maxTextLines,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, color: Colors.black),
+                  style: const TextStyle(fontSize: 17, color: Colors.black),
                 ),
               ),
             ],

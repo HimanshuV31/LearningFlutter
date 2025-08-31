@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/auth/auth_service.dart';
-import '../../services/crud/notes_service.dart';
+// import '../../services/crud/notes_service.dart';
 import '../../utilities/generics/ui/custom_app_bar.dart';
 import '../../utilities/generics/ui/dialogs.dart';
+import '../../services/cloud/cloud_note.dart';
+// import '../../services/cloud/cloud_storage_exceptions.dart';
+import '../../services/cloud/firebase_cloud_storage.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -13,12 +16,14 @@ class CreateUpdateNoteView extends StatefulWidget {
 }
 
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
-  Color backgroundColor = const Color(0xFF62B0D5);
-  Color foregroundColor = Colors.white;
+  final Color backgroundColor = const Color(0xFF62B0D5);
+  final Color foregroundColor = Colors.white;
 
-  DatabaseNote? _note;
+  CloudNote? _note;
+  // DatabaseNote? _note;
 
-  late final NotesService _notesService;
+  // late final NotesService _notesService;
+  late final FirebaseCloudStorage _notesService;
   late final TextEditingController _titleController;
   late final TextEditingController _textController;
 
@@ -30,13 +35,13 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   @override
   void initState() {
     super.initState();
-    _notesService = NotesService();
+    // _notesService = NotesService();
+    _notesService = FirebaseCloudStorage();
     _titleController = TextEditingController();
     _textController = TextEditingController();
     _setupListeners();
   }
 
-  // ✅ Listeners to update DB in realtime
   void _setupListeners() {
     _titleController.addListener(_onTitleChanged);
     _textController.addListener(_onTextChanged);
@@ -44,72 +49,110 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
 
   void _onTitleChanged() {
     setState(() {});
-    _handleChange();
+    _debouncedHandleChange();
   }
 
   void _onTextChanged() {
     setState(() {});
-    _handleChange();
+    _debouncedHandleChange();
+  }
+
+  void _debouncedHandleChange() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _handleChange();
+    });
   }
 
   Future<void> _handleChange() async {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    final title = _titleController.text.trim();
+    final text = _textController.text.trim();
 
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
+    if (_note != null && title == _initialTitle && text == _initialText) {
+      // No changes, no action
+      return;
+    }
 
-      final title = _titleController.text.trim();
-      final text = _textController.text.trim();
-      // If there's no change in title or text, don't update the DB
-      if ( _note!=null && title == _initialTitle && text == _initialText) return;
+    final currentUser = AuthService.firebase().currentUser!;
+    final userId = currentUser.id;
 
-      // These lines will be executed if there's a change in title or text
-      final currentUser = AuthService.firebase().currentUser!;
-      final email = currentUser.email;
-      final owner = await _notesService.getUser(email: email);
-      // Create note once, after user enters any non empty text
-      if ((title.isNotEmpty || text.isNotEmpty) && _note == null) {
-        final newNote = await _notesService.createNote(
-          owner: owner,
-          title: title,
-          text: text,
-        );
-        setState(() {
-          _note = newNote;
-        });
+    if ((title.isNotEmpty || text.isNotEmpty) && _note == null) {
+      await _createNote(userId, title, text);
+      return;
+    }
+
+    if (_note != null) {
+      if (title.isEmpty && text.isEmpty) {
+        await _deleteNote();
         return;
       }
-      if (_note != null) {
-        if (title.isEmpty && text.isEmpty) {
-          await _notesService.deleteNote(id: _note!.id);
-          setState(() {
-            _note = null;
-          });
-          return;
-        }
-        final updatedNote = await _notesService.updateNote(
-          note: _note!,
-          title: title,
-          text: text,
-        );
-        setState(() => _note = updatedNote);
-      }
+      await _updateNote(title, text);
+    }
+  }
+
+  Future<void> _createNote(String userId, String title, String text) async {
+    // final owner = await _notesService.getUser(email: email);
+    // // Older create note logic:
+    // final newNote = await _notesService.createNote(
+    //   owner: owner,
+    //   title: title,
+    //   text: text,
+    // );
+    final newNote = await _notesService.createNewNote(
+        ownerUserId: userId,
+        title: title,
+        text: text,
+    );
+    setState(() {
+      _note = newNote;
+      _initialTitle = title;
+      _initialText = text;
     });
-  } // Future<void> _handleChange()
+  }
+
+  Future<void> _updateNote(String title, String text) async {
+    // final updatedNote = await _notesService.updateNote(
+    //   note: _note!,
+    //   title: title,
+    //   text: text,
+    // );
+    await _notesService.updateNote(
+      documentId: _note!.documentId,
+      title: title,
+      text: text,
+    );
+    setState(() {
+      _initialTitle = title;
+      _initialText = text;
+      // If updateNote returns updated note, assign here:
+      // _note = updatedNote;
+    });
+  }
+
+  Future<void> _deleteNote() async {
+    // await _notesService.deleteNote(id: _note!.id);
+    await _notesService.deleteNote(documentId: _note!.documentId);
+    setState(() {
+      _note = null;
+      _initialTitle = "";
+      _initialText = "";
+    });
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
-    if (args != null && args is DatabaseNote) {
-      // ✅ Existing note case
+    // if (args != null && args is DatabaseNote) {
+    if (args != null && args is CloudNote) {
       _note = args;
       _titleController.text = _note!.title;
       _textController.text = _note!.text;
 
       _initialTitle = _note!.title;
       _initialText = _note!.text;
-    }
-    else{
+    } else {
       _initialText = "";
       _initialTitle = "";
     }
@@ -143,7 +186,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
               if (value == "delete" && _note != null) {
                 final delete = await showDeleteDialog(context: context);
                 if (delete) {
-                  _notesService.deleteNote(id: _note!.id);
+                  await _deleteNote();
                   if (!mounted) return;
                   Navigator.of(context).pop();
                 }
@@ -155,7 +198,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
           ),
         ],
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -171,7 +213,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                 hintText: "Title",
               ),
             ),
-            const SizedBox(height: 22), // 👈 add some space
+            const SizedBox(height: 22),
             TextField(
               controller: _textController,
               keyboardType: TextInputType.multiline,

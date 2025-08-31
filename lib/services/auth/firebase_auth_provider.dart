@@ -1,13 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuthException, FirebaseAuth, OAuthProvider, GoogleAuthProvider;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:infinity_notes/services/auth/auth_exception.dart';
 import 'package:infinity_notes/services/auth/auth_provider.dart';
 import 'package:infinity_notes/services/auth/auth_user.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-
+import 'package:infinity_notes/services/platform/platform_utils.dart';
 import '../../firebase_options.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
@@ -117,7 +117,7 @@ class FirebaseAuthProvider implements AuthProvider {
 
   @override
   Future<AuthUser?> logInWithGoogle() async {
-    if (kIsWeb) {
+    if (PlatformUtils.isWeb) {
       final userCred = await FirebaseAuth.instance.signInWithPopup(
         GoogleAuthProvider(),
       );
