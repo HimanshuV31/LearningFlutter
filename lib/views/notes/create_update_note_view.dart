@@ -5,7 +5,7 @@ import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/services/notes_actions/delete_note.dart';
-import 'package:infinity_notes/services/notes_actions/share.dart';
+import 'package:infinity_notes/services/notes_actions/share_note.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 // import '../../services/crud/notes_service.dart';

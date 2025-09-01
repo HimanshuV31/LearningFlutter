@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/services/notes_actions/delete_note.dart';
-import 'package:infinity_notes/services/notes_actions/share.dart';
+import 'package:infinity_notes/services/notes_actions/share_note.dart';
 
 Future<String?> showNoteActionsDialog({
   required BuildContext context,
