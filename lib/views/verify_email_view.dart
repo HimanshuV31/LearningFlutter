@@ -72,6 +72,11 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
         title: "Infinity Notes | Verify Email",
         backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          color: Colors.black,
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(context, loginRoute, (_) => false),
+        ),
       ),
       body: Center(
         // Centers horizontally & vertically

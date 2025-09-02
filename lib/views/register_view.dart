@@ -61,30 +61,18 @@ class _RegisterViewState extends State<RegisterView> {
         password: _password,
       );
       if (!mounted) return;
-      showDialog(
+      await showCustomRoutingDialog(
         context: context,
-        barrierDismissible: false, // forces the user to press a button
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Registration Successful"),
-            content: const Text("Please verify your email."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // close dialog
-                },
-                child: const Text("Close"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // close dialog
-                  Navigator.pushNamed(context, verifyEmailRoute);
-                },
-                child: const Text("Verify Now"),
-              ),
-            ],
-          );
-        },
+        title: "Verification Pending",
+        content: "Please verify your email to continue.",
+        routeButtonText: "Verify Now",
+        routeToPush: verifyEmailRoute,
+        cancelButtonText: null,
+        cancelButtonStyle: null,
+        barrierDismissible: false,
+        routeButtonStyle: TextButton.styleFrom(
+          backgroundColor: Colors.blue,
+        ),
       );
     } on AuthException catch (e) {
       final authError = AuthException.fromCode(e.code);

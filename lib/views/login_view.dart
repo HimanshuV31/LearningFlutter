@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infinity_notes/constants/routes.dart';
+import 'package:infinity_notes/services/auth/auth_exception.dart';
+import 'package:infinity_notes/services/auth/auth_service.dart';
+import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
+import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
+import 'package:infinity_notes/services/platform/platform_utils.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
-import 'package:infinity_notes/services/auth/auth_exception.dart';
-import 'package:infinity_notes/services/auth/auth_service.dart';
-import 'package:infinity_notes/services/platform/platform_utils.dart';
-import 'package:infinity_notes/constants/routes.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -24,48 +27,36 @@ class _LoginViewState extends State<LoginView> {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
     try {
-      await auth.logIn(email: email, password: password);
+      // await auth.logIn(email: email, password: password);
+      //
+      // final user = auth.currentUser;
+      //
+      // if (user != null) {
+      //   if (user.isEmailVerified) {
+      //     if (!mounted) return;
+      //     // Navigate to home page if email is verified
+      //     showCustomToast(context, "Login Successful");
+      //     Navigator.pushNamedAndRemoveUntil(context, notesRoute, (_) => false);
+      //   } else {
+      //     // If email not verified, show message and maybe redirect
+      //     if (!mounted) return;
+      //     await showCustomRoutingDialog(
+      //       context: context,
+      //       title: "Verification Pending",
+      //       content: "Please verify your email to continue.",
+      //       routeButtonText: "Verify Now",
+      //       routeToPush: verifyEmailRoute,
+      //       cancelButtonText: null,
+      //       cancelButtonStyle: null,
+      //       barrierDismissible: false,
+      //       routeButtonStyle: TextButton.styleFrom(
+      //         backgroundColor: Colors.blue,
+      //       ),
+      //     );
+      //   }
+      // }
 
-      final user = auth.currentUser;
-
-      if (user != null) {
-        if (user.isEmailVerified) {
-          if (!mounted) return;
-          // Navigate to home page if email is verified
-          showCustomToast(context, "Login Successful");
-          Navigator.pushNamedAndRemoveUntil(context, notesRoute, (_) => false);
-        } else {
-          // If email not verified, show message and maybe redirect
-          if (!mounted) return;
-          showDialog(
-            context: context,
-            barrierDismissible: false, // forces the user to press a button
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Verification Pending"),
-                content: const Text(
-                  "Please verify your email before logging in.",
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // close dialog
-                    },
-                    child: const Text("Close"),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // close dialog
-                      Navigator.pushNamed(context, verifyEmailRoute);
-                    },
-                    child: const Text("Verify Now"),
-                  ),
-                ],
-              );
-            },
-          );
-        }
-      }
+      context.read<AuthBloc>().add(AuthEventLogIn(email,password));
     } on AuthException catch (e) {
       final authError = AuthException.fromCode(e.code);
       String message = authError.message;
@@ -150,7 +141,7 @@ class _LoginViewState extends State<LoginView> {
                       return;
                     }
                     try {
-                      await auth.sendPasswordReset(email: email,);
+                      await auth.sendPasswordReset(email: email);
                       if (!mounted) return;
                       showWarningDialog(
                         context: context,
