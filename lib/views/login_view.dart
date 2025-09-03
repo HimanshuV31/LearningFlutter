@@ -5,6 +5,7 @@ import 'package:infinity_notes/services/auth/auth_exception.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
+import 'package:infinity_notes/services/auth/bloc/auth_state.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
@@ -26,7 +27,9 @@ class _LoginViewState extends State<LoginView> {
   Future<void> login() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
-    try {
+
+    context.read<AuthBloc>().add(AuthEventLogIn(email, password));
+    // try {
       // await auth.logIn(email: email, password: password);
       //
       // final user = auth.currentUser;
@@ -55,34 +58,32 @@ class _LoginViewState extends State<LoginView> {
       //     );
       //   }
       // }
-
-      context.read<AuthBloc>().add(AuthEventLogIn(email,password));
-    } on AuthException catch (e) {
-      final authError = AuthException.fromCode(e.code);
-      String message = authError.message;
-      String errorTitle = authError.title;
-      if (e.code == "invalid-credential" || e.code == "invalid-email") {
-        emailController.clear();
-      }
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-      await showWarningDialog(
-        context: context,
-        title: errorTitle,
-        message: message,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      await showWarningDialog(
-        context: context,
-        title: "Unknown Error",
-        message: "Unknown Error: $e",
-      );
-    } finally {
-      passwordController.clear();
-    }
+    // } on AuthException catch (e) {
+    //   final authError = AuthException.fromCode(e.code);
+    //   String message = authError.message;
+    //   String errorTitle = authError.title;
+    //   if (e.code == "invalid-credential" || e.code == "invalid-email") {
+    //     emailController.clear();
+    //   }
+    //   if (!mounted) return;
+    //   ScaffoldMessenger.of(
+    //     context,
+    //   ).showSnackBar(SnackBar(content: Text(message)));
+    //   await showWarningDialog(
+    //     context: context,
+    //     title: errorTitle,
+    //     message: message,
+    //   );
+    // } catch (e) {
+    //   if (!mounted) return;
+    //   await showWarningDialog(
+    //     context: context,
+    //     title: "Unknown Error",
+    //     message: "Unknown Error: $e",
+    //   );
+    // } finally {
+    //   passwordController.clear();
+    // }
   }
 
   @override
@@ -96,7 +97,30 @@ class _LoginViewState extends State<LoginView> {
         foregroundColor: foregroundColor,
       ),
 
-      body: Padding(
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthStateLoggedIn) {
+            // Navigate to notes screen on successful login
+            Navigator.pushNamedAndRemoveUntil(context, notesRoute, (_) => false);
+          } else if (state is AuthStateNeedsVerification) {
+            // Navigate to verify email screen
+            Navigator.pushNamed(context, verifyEmailRoute);
+          } else if (state is AuthStateLoggedOut && state.exception != null) {
+            // Display error dialogs for login failure
+            final e = state.exception;
+            if (e is AuthException) {
+              showWarningDialog(
+                context: context,
+                title: e.title,
+                message: e.message,
+              );
+              emailController.clear();
+              passwordController.clear();
+            }
+          }
+        },
+
+      child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -112,13 +136,13 @@ class _LoginViewState extends State<LoginView> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: backgroundColor,
-                foregroundColor: foregroundColor,
+                onPressed: login,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: backgroundColor,
+                  foregroundColor: foregroundColor,
+                ),
+                child: const Text("Login"),
               ),
-              child: const Text("Login"),
-            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -257,6 +281,7 @@ class _LoginViewState extends State<LoginView> {
           ],
         ),
       ),
+    ),
     );
   }
 }

@@ -1,8 +1,11 @@
 import "package:firebase_auth/firebase_auth.dart" show User;
 import "package:flutter/foundation.dart";
+import 'package:equatable/equatable.dart';
 
-@immutable
-class AuthUser {
+// @immutable
+// class AuthUser
+class AuthUser extends Equatable
+{
   final String id;
   final bool isEmailVerified;
   final String email;
@@ -12,6 +15,9 @@ class AuthUser {
     required this.email,
     required this.isEmailVerified,
   });
+
+  @override
+  List<Object?> get props => [id, email, isEmailVerified];
 
   factory AuthUser.fromFirebase(User user) => AuthUser(
     id: user.uid,

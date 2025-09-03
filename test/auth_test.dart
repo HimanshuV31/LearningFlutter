@@ -136,7 +136,7 @@ class MockAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<void> reloadUser() {
+  Future<AuthUser?> reloadUser() {
     // TODO: implement reloadUser
     throw UnimplementedError();
   }

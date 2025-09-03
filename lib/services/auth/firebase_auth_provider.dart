@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuthException, FirebaseAuth, OAuthProvider, GoogleAuthProvider;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:infinity_notes/services/auth/auth_exception.dart';
@@ -22,7 +23,8 @@ class FirebaseAuthProvider implements AuthProvider {
   Future<AuthUser> createUser({
     required String email,
     required String password,
-  }) async {
+  }) async
+  {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -55,7 +57,8 @@ class FirebaseAuthProvider implements AuthProvider {
   Future<AuthUser> logIn({
     required String email,
     required String password,
-  }) async {
+  }) async
+  {
     try {
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
@@ -159,15 +162,23 @@ class FirebaseAuthProvider implements AuthProvider {
     return AuthUser.fromFirebase(userCredential.user!);
   }
 
-
-  Future<void> reloadUser() async {
+  @override
+  Future<AuthUser?> reloadUser() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await user.reload(); // refresh user from Firebase
-      } else {
+      if (user == null) {
         throw const UserNotFoundAuthException();
       }
+      debugPrint("FirebaseAUthProvider (reloadUser): Reloading User.");
+      await user.reload(); // refresh user from Firebase
+      debugPrint("FirebaseAUthProvider (reloadUser): Reload successful. Now FreshUser");
+      final freshUser = FirebaseAuth.instance.currentUser;
+      if(freshUser == null){
+        debugPrint("FirebaseAUthProvider (reloadUser): FreshUser is null.");
+        throw const UserNotFoundAuthException();
+      }
+      debugPrint("FirebaseAUthProvider (reloadUser): Returning freshUser.");
+      return AuthUser.fromFirebase(freshUser);
     } on FirebaseAuthException catch (e) {
       throw AuthException.fromCode(e.code);
     } catch (e) {
