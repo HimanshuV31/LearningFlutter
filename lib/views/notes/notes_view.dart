@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' show ReadContext, BlocListener;
 import 'package:infinity_notes/constants/routes.dart';
 import 'package:infinity_notes/enums/menu_actions.dart';
+import 'package:infinity_notes/services/auth/auth_exception.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
@@ -27,6 +28,8 @@ class NotesView extends StatefulWidget {
   State<NotesView> createState() => _NotesViewState();
 }
 
+
+
 class _NotesViewState extends State<NotesView> {
   String get userEmail => AuthService.firebase().currentUser!.email;
 
@@ -34,11 +37,11 @@ class _NotesViewState extends State<NotesView> {
   late final FirebaseCloudStorage _notesService;
 
   String get userId => AuthService.firebase().currentUser!.id;
+  CloseDialog? _closeDialogHandle;
 
   Future<void> newNote() async {
     await Navigator.of(context).pushNamed(CreateUpdateNoteRoute);
   }
-
   // Future<void> openNote(DatabaseNote note) async {
   Future<void> openNote(CloudNote note) async {
     await Navigator.of(
@@ -68,10 +71,31 @@ class _NotesViewState extends State<NotesView> {
     // final _userEmail = AuthService.firebase().currentUser?.email;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthStateLoggedOut) {
-          Navigator.of(context,)
-              .pushNamedAndRemoveUntil(loginRoute, (route) => false);
+        if (state is AuthStateLoggedOut && state.exception != null) {
+
+          final closeDialog=_closeDialogHandle;
+          if(!state.isLoading && closeDialog!=null){
+            closeDialog();
+            _closeDialogHandle=null;
+          }else if(state.isLoading && closeDialog==null){
+            _closeDialogHandle = showLoadingDialog(
+              context: context,
+              text: "Loading... .. .",
+            );
+          }
+
+          // Display error dialogs for login failure
+          final e = state.exception;
+          if (e is AuthException) {
+            showWarningDialog(
+              context: context,
+              title: e.title,
+              message: e.message,
+            );
+
+          }
         }
+
       },
       child: Stack(
         children: [

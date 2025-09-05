@@ -54,10 +54,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const HomePage(),
       routes: {
-        loginRoute: (context) => const LoginView(),
-        registerRoute: (context) => const RegisterView(),
-        verifyEmailRoute: (context) => const VerifyEmailView(),
-        notesRoute: (context) => const NotesView(),
+        // loginRoute: (context) => const LoginView(),
+        // registerRoute: (context) => const RegisterView(),
+        // verifyEmailRoute: (context) => const VerifyEmailView(),
+        // notesRoute: (context) => const NotesView(),
         CreateUpdateNoteRoute: (context) => const CreateUpdateNoteView(),
       },
     );
@@ -83,16 +83,16 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthStateLoggedOut) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-              loginRoute, (route) => false);
-        } else if (state is AuthStateLoggedIn) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-              notesRoute, (route) => false);
-        } else if (state is AuthStateNeedsVerification) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-              verifyEmailRoute, (route) => false);
-        }
+        // if (state is AuthStateLoggedOut) {
+        //   Navigator.of(context).pushNamedAndRemoveUntil(
+        //       loginRoute, (route) => false);
+        // } else if (state is AuthStateLoggedIn) {
+        //   Navigator.of(context).pushNamedAndRemoveUntil(
+        //       notesRoute, (route) => false);
+        // } else if (state is AuthStateNeedsVerification) {
+        //   Navigator.of(context).pushNamedAndRemoveUntil(
+        //       verifyEmailRoute, (route) => false);
+        // }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
@@ -102,7 +102,10 @@ class _HomePageState extends State<HomePage> {
             return const VerifyEmailView();
           } else if (state is AuthStateLoggedOut) {
             return const LoginView();
-          } else {
+          }else if(state is AuthStateRegistering){
+            return const RegisterView();
+          }
+          else {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );

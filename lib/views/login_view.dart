@@ -11,9 +11,9 @@ import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 
+
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
-
   @override
   State<LoginView> createState() => _LoginViewState();
 }
@@ -21,8 +21,9 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
   final auth = AuthService.firebase();
+  CloseDialog? _closeDialogHandle;
+
 
   Future<void> login() async {
     final email = emailController.text.trim();
@@ -85,42 +86,56 @@ class _LoginViewState extends State<LoginView> {
     //   passwordController.clear();
     // }
   }
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     const backgroundColor = Colors.cyan;
     const foregroundColor = Colors.white;
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) async {
+         if (state is AuthStateNeedsVerification) {
+          // Navigate to verify email screen
+          context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
+        } else if (state is AuthStateLoggedOut && state.exception != null) {
+
+          final closeDialog=_closeDialogHandle;
+          if(!state.isLoading && closeDialog!=null){
+            closeDialog();
+            _closeDialogHandle=null;
+          }else if(state.isLoading && closeDialog==null){
+            _closeDialogHandle = showLoadingDialog(
+              context: context,
+              text: "Loading... .. .",
+            );
+          }
+          // Display error dialogs for login failure
+          final e = state.exception;
+          if (e is AuthException) {
+            showWarningDialog(
+              context: context,
+              title: e.title,
+              message: e.message,
+            );
+            emailController.clear();
+            passwordController.clear();
+          }
+        }
+      },
+
+      child: Scaffold(
       appBar: CustomAppBar(
         title: "Infinity Notes | Login",
         backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
       ),
 
-      body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthStateLoggedIn) {
-            // Navigate to notes screen on successful login
-            Navigator.pushNamedAndRemoveUntil(context, notesRoute, (_) => false);
-          } else if (state is AuthStateNeedsVerification) {
-            // Navigate to verify email screen
-            Navigator.pushNamed(context, verifyEmailRoute);
-          } else if (state is AuthStateLoggedOut && state.exception != null) {
-            // Display error dialogs for login failure
-            final e = state.exception;
-            if (e is AuthException) {
-              showWarningDialog(
-                context: context,
-                title: e.title,
-                message: e.message,
-              );
-              emailController.clear();
-              passwordController.clear();
-            }
-          }
-        },
-
-      child: Padding(
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -148,7 +163,10 @@ class _LoginViewState extends State<LoginView> {
               children: [
                 // Registration button
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(context, registerRoute),
+                  // onPressed: () => Navigator.pushNamed(context, registerRoute),
+                  onPressed: () {
+                    context.read<AuthBloc>().add(const AuthEventShouldRegister());
+                  },
                   child: const Text("New User? Register."),
                 ),
 
@@ -165,14 +183,15 @@ class _LoginViewState extends State<LoginView> {
                       return;
                     }
                     try {
-                      await auth.sendPasswordReset(email: email);
+                      // await auth.sendPasswordReset(email: email);
+                      context.read<AuthBloc>().add(AuthEventResetPassword(email));
                       if (!mounted) return;
                       showWarningDialog(
                         context: context,
                         title: "Reset Email Sent",
                         message:
-                            "Password Reset email has been sent if the email is registered."
-                            "Otherwise, kindly do the registration.",
+                            "Password Reset email has been sent if the email is "
+                                "registered.Otherwise, kindly do the registration.",
                       );
                     } on AuthException catch (e) {
                       final authError = AuthException.fromCode(e.code);
@@ -206,29 +225,30 @@ class _LoginViewState extends State<LoginView> {
                 // Google
                 GestureDetector(
                   onTap: () async {
-                    try {
-                      final user = await auth.logInWithGoogle();
-                      if (user != null && user.isEmailVerified) {
-                        if (!mounted) return;
-                        showCustomToast(context, "Login Successful via Google");
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          notesRoute,
-                          (_) => false,
-                        );
-                      }
-                    } on AuthException catch (e) {
-                      if (!mounted) return;
-                      if (e.code == 'cancelled') {
-                        return;
-                      } else {
-                        await showWarningDialog(
-                          context: context,
-                          title: "Google Sign-In Failed",
-                          message: e.toString(),
-                        );
-                      }
-                    }
+                  //   try {
+                  //     final user = await auth.logInWithGoogle();
+                  //     if (user != null) {
+                  //       if (!mounted) return;
+                  //       showCustomToast(context, "Login Successful via Google");
+                  //       Navigator.pushNamedAndRemoveUntil(
+                  //         context,
+                  //         notesRoute,
+                  //         (_) => false,
+                  //       );
+                  //     }
+                  //   } on AuthException catch (e) {
+                  //     if (!mounted) return;
+                  //     if (e.code == 'cancelled') {
+                  //       return;
+                  //     } else {
+                  //       await showWarningDialog(
+                  //         context: context,
+                  //         title: "Google Sign-In Failed",
+                  //         message: e.toString(),
+                  //       );
+                  //     }
+                  //   }
+                    context.read<AuthBloc>().add(AuthEventGoogleSignIn());
                   },
                   child: Column(
                     children: [
@@ -244,28 +264,29 @@ class _LoginViewState extends State<LoginView> {
                   const SizedBox(width: 40),
                   GestureDetector(
                     onTap: () async {
-                      try {
-                        final user = await auth.logInWithApple();
-                        if (user != null && user.isEmailVerified) {
-                          if (!mounted) return;
-                          showCustomToast(
-                            context,
-                            "Login Successful via Apple",
-                          );
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            notesRoute,
-                            (_) => false,
-                          );
-                        }
-                      } catch (e) {
-                        if (!mounted) return;
-                        await showWarningDialog(
-                          context: context,
-                          title: "Apple Sign-In Failed",
-                          message: e.toString(),
-                        );
-                      }
+                      // try {
+                      //   final user = await auth.logInWithApple();
+                      //   if (user != null && user.isEmailVerified) {
+                      //     if (!mounted) return;
+                      //     showCustomToast(
+                      //       context,
+                      //       "Login Successful via Apple",
+                      //     );
+                      //     Navigator.pushNamedAndRemoveUntil(
+                      //       context,
+                      //       notesRoute,
+                      //       (_) => false,
+                      //     );
+                      //   }
+                      // } catch (e) {
+                      //   if (!mounted) return;
+                      //   await showWarningDialog(
+                      //     context: context,
+                      //     title: "Apple Sign-In Failed",
+                      //     message: e.toString(),
+                      //   );
+                      // }
+                      context.read<AuthBloc>().add(AuthEventAppleSignIn());
                     },
                     child: Column(
                       children: [
