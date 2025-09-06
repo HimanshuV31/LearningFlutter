@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:infinity_notes/constants/routes.dart';
 import 'package:infinity_notes/services/auth/auth_exception.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
@@ -8,7 +7,6 @@ import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_state.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
-import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 
 
@@ -22,7 +20,6 @@ class _LoginViewState extends State<LoginView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final auth = AuthService.firebase();
-  CloseDialog? _closeDialogHandle;
 
 
   Future<void> login() async {
@@ -103,17 +100,6 @@ class _LoginViewState extends State<LoginView> {
           // Navigate to verify email screen
           context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
         } else if (state is AuthStateLoggedOut && state.exception != null) {
-
-          final closeDialog=_closeDialogHandle;
-          if(!state.isLoading && closeDialog!=null){
-            closeDialog();
-            _closeDialogHandle=null;
-          }else if(state.isLoading && closeDialog==null){
-            _closeDialogHandle = showLoadingDialog(
-              context: context,
-              text: "Loading... .. .",
-            );
-          }
           // Display error dialogs for login failure
           final e = state.exception;
           if (e is AuthException) {

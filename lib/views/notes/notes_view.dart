@@ -66,7 +66,7 @@ class _NotesViewState extends State<NotesView> {
 
   @override
   Widget build(BuildContext context) {
-    const backgroundColor = Color(0xFF3993ad);
+    // const backgroundColor = Color(0xFF3993ad);
     const foregroundColor = Colors.white;
     // final _userEmail = AuthService.firebase().currentUser?.email;
     return BlocListener<AuthBloc, AuthState>(

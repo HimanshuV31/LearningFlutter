@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infinity_notes/helpers/loading/loading_screen.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_state.dart';
@@ -77,11 +78,10 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     context.read<AuthBloc>().add(const AuthEventInitialize());
   }
-
-
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    // return BlocListener<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         // if (state is AuthStateLoggedOut) {
         //   Navigator.of(context).pushNamedAndRemoveUntil(
@@ -93,8 +93,15 @@ class _HomePageState extends State<HomePage> {
         //   Navigator.of(context).pushNamedAndRemoveUntil(
         //       verifyEmailRoute, (route) => false);
         // }
+        if(state.isLoading){
+          LoadingScreen().show(
+              context: context,
+              text: state.loadingText ?? "Please wait..."
+          );}else{
+          LoadingScreen().hide();
+        }
       },
-      child: BlocBuilder<AuthBloc, AuthState>(
+      // child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is AuthStateLoggedIn) {
             return const NotesView();
@@ -111,7 +118,7 @@ class _HomePageState extends State<HomePage> {
             );
           }
         },
-      ),
+      // ),
     );
   }
 }

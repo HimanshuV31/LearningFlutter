@@ -4,7 +4,7 @@ import 'package:infinity_notes/services/cloud/cloud_note.dart';
 
 
 Future<void> shareNote ({required CloudNote note, required BuildContext context})async {
-  if(note !=null){
+  // if(note !=null){
     final content = 'Title: ${note.title}\n\n${note.text}';
     SharePlus.instance.share(
       ShareParams(
@@ -14,5 +14,5 @@ Future<void> shareNote ({required CloudNote note, required BuildContext context}
         // sharePositionOrigin: const Rect.fromLTWH(0, 0, 0, 0),
       ),
     );
-  }
+  // }
 }
