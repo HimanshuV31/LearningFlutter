@@ -20,7 +20,7 @@ class _LoginViewState extends State<LoginView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final auth = AuthService.firebase();
-
+  CloseDialog? _closeDialogHandle;
 
   Future<void> login() async {
     final email = emailController.text.trim();
@@ -96,10 +96,23 @@ class _LoginViewState extends State<LoginView> {
     const foregroundColor = Colors.white;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-         if (state is AuthStateNeedsVerification) {
-          // Navigate to verify email screen
-          context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
-        } else if (state is AuthStateLoggedOut && state.exception != null) {
+        // if (state is AuthStateNeedsEmailVerification) {
+        //   final closeDialog = _closeDialogHandle;
+        //   if (!state.isLoading && closeDialog != null) {
+        //     closeDialog();
+        //     _closeDialogHandle = null;
+        //   }
+        //   final bool? _shouldVerify = await showWarningDialog(
+        //       context: context,
+        //       title: "Verification Pending",
+        //       message: "Please verify your email to continue.",
+        //       buttonText: "Verify Now"
+        //   );
+        //   if (_shouldVerify == true) {
+        //     context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
+        //   }
+        // }else
+          if (state is AuthStateLoggedOut && state.exception != null) {
           // Display error dialogs for login failure
           final e = state.exception;
           if (e is AuthException) {
@@ -160,17 +173,22 @@ class _LoginViewState extends State<LoginView> {
                 TextButton(
                   onPressed: () async {
                     final email = emailController.text.trim();
-                    if (email.isEmpty) {
+                    final bool isEmailValid = RegExp(
+                      r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$',
+                    ).hasMatch(email);
+                    if (!isEmailValid || email.isEmpty) {
                       showWarningDialog(
                         context: context,
-                        title: "Insert Email",
-                        message: "Please enter your email to reset password",
+                        title: "Invalid Email",
+                        message: "Please enter a valid email address",
                       );
                       return;
                     }
+                    final bool _confirm = await showConfirmDialog(context: context);
+                    if (!_confirm) return;
                     try {
                       // await auth.sendPasswordReset(email: email);
-                      context.read<AuthBloc>().add(AuthEventResetPassword(email));
+                      context.read<AuthBloc>().add(AuthEventResetPassword(email: email));
                       if (!mounted) return;
                       showWarningDialog(
                         context: context,

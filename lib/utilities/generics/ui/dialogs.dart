@@ -84,19 +84,21 @@ Future<bool> showDeleteDialog({required BuildContext context}) {
 }
 
 //Warning Dialog
-Future<void> showWarningDialog({
+Future<bool?> showWarningDialog({
   required BuildContext context,
   required String title,
-  required String message,})
+  required String message,
+  String buttonText = "OK",
+})
 {
-  return _showGenericDialog<void>(
+  return _showGenericDialog<bool>(
       context: context,
       title: title,
       content: message,
       barrierDismissible: false,
       optionBuilder: () =>
       {
-        "OK": DialogOption<void>(value: null),
+        buttonText: DialogOption<bool>(value:true),
       }
   );
 }
@@ -173,8 +175,8 @@ Future<void> showCustomRoutingDialog({
 typedef CloseDialog = void Function();
 CloseDialog showLoadingDialog({
   required BuildContext context,
-  required String text,
-}) {
+  required String text,})
+{
     final dialog= AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -191,4 +193,30 @@ CloseDialog showLoadingDialog({
       builder: (context) => dialog,
     );
     return () => Navigator.of(context).pop();
+}
+
+//Confirm Dialog
+Future<bool> showConfirmDialog({required BuildContext context}) {
+  return _showGenericDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    title: 'Send Password Reset Email',
+    content: 'Are you sure you want to send a password reset email?',
+    optionBuilder: () =>
+    {
+      'CANCEL': DialogOption<bool>(
+        value: false,
+        style: TextButton.styleFrom(
+          backgroundColor: Colors.red,
+        ),
+      ),
+      'CONFIRM': DialogOption<bool>(
+        value: true,
+        style: TextButton.styleFrom(
+          backgroundColor: Colors.black,
+        ),
+        textColor: Colors.white,
+      ),
+    },
+  ).then((value) => value ?? false);
 }

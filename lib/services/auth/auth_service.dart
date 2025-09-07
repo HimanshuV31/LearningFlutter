@@ -23,7 +23,8 @@ class AuthService implements local_auth.AuthProvider {
   Future<local_auth.AuthUser> logIn({
     required String email,
     required String password,
-  }) async {
+  }) async
+  {
     return provider.logIn(email: email, password: password);
   }
 

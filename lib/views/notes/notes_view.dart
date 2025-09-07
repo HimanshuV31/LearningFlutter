@@ -103,7 +103,7 @@ class _NotesViewState extends State<NotesView> {
           Scaffold(
             backgroundColor: Colors.transparent,
             appBar: CustomAppBar(
-              title: "Infinity Notes | Notes",
+              title: "Infinity Notes",
               backgroundColor: Colors.black,
               foregroundColor: foregroundColor,
               themeColor: Colors.black26,

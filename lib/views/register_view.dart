@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infinity_notes/helpers/loading/loading_screen.dart';
 import 'package:infinity_notes/services/auth/auth_exception.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
@@ -20,13 +21,14 @@ class _RegisterViewState extends State<RegisterView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
 
   bool _isEmailValid = false;
   final bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
   CloseDialog? _closeDialogHandle;
+
   // Password rules tracking
   bool _hasUpperCase = false;
   bool _hasLowerCase = false;
@@ -57,7 +59,9 @@ class _RegisterViewState extends State<RegisterView> {
 
     if (!_formKey.currentState!.validate()) return;
     if (!_passwordsMatch) return;
-
+    context.read<AuthBloc>().add(
+      AuthEventRegister(email: _email, password: _password),
+    );
     // try {
     //   await AuthService.firebase().createUser(
     //     email: _email,
@@ -97,10 +101,6 @@ class _RegisterViewState extends State<RegisterView> {
     //     message: "Unknown Error: $e",
     //   );
     // }
-    context.read<AuthBloc>().add(AuthEventRegister(
-      email: _email,
-      password: _password,
-    ));
   }
 
   Widget _buildPasswordCriteria(String text, bool condition) {
@@ -125,13 +125,37 @@ class _RegisterViewState extends State<RegisterView> {
     const backgroundColor = Colors.amber;
     const foregroundColor = Colors.white;
     return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) async{
+      listener: (context, state) async {
+        // if (state is AuthStateNeedsEmailVerification) {
+        //   final closeDialog = _closeDialogHandle;
+        //   if (!state.isLoading && closeDialog != null) {
+        //     closeDialog();
+        //     _closeDialogHandle = null;
+        //   }
+        //   final bool? _shouldVerify = await showWarningDialog(
+        //       context: context,
+        //       title: "Verification Pending",
+        //       message: "Please verify your email to continue.",
+        //       buttonText: "Verify Now"
+        //   );
+        //   if (_shouldVerify == true) {
+        //     context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
+        //   }
+        // }
+        // if (state is AuthStateNavigateToVerifyEmail) {
+        //   // This triggers UI rebuild, and builder returns VerifyEmailView here
+        // }
+        if (state.isLoading) {
+          LoadingScreen().show(context: context, text: state.loadingText ?? "Please wait...");
+        } else {
+          LoadingScreen().hide();
+        }
         if (state is AuthStateLoggedOut && state.exception != null) {
-          final closeDialog=_closeDialogHandle;
-          if(!state.isLoading && closeDialog!=null){
+          final closeDialog = _closeDialogHandle;
+          if (!state.isLoading && closeDialog != null) {
             closeDialog();
-            _closeDialogHandle=null;
-          }else if(state.isLoading && closeDialog==null){
+            _closeDialogHandle = null;
+          }   else if (state.isLoading && closeDialog == null) {
             _closeDialogHandle = showLoadingDialog(
               context: context,
               text: "Loading... .. .",
@@ -146,6 +170,18 @@ class _RegisterViewState extends State<RegisterView> {
               message: e.message,
             );
           }
+        }
+        else if (state is AuthStateRegistering && state.exception != null && !state.isLoading) {
+          final closeDialog = _closeDialogHandle;
+          if (closeDialog != null) {
+            closeDialog();
+            _closeDialogHandle = null;
+          }
+          await showWarningDialog(
+            context: context,
+            title: "Registration Error",
+            message: state.exception.toString(),
+          );
         }
       },
       child: Scaffold(
@@ -163,6 +199,8 @@ class _RegisterViewState extends State<RegisterView> {
                 // Email
                 TextFormField(
                   controller: _emailController,
+                  autofocus: true,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: "Email",
                     suffixIcon: Icon(
@@ -190,6 +228,7 @@ class _RegisterViewState extends State<RegisterView> {
                 // Password
                 TextFormField(
                   controller: _passwordController,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(labelText: "Password"),
                   obscureText: !_isPasswordVisible,
                   onChanged: (value) {
@@ -224,7 +263,7 @@ class _RegisterViewState extends State<RegisterView> {
                       onPressed: () {
                         setState(() {
                           _isConfirmPasswordVisible =
-                          !_isConfirmPasswordVisible;
+                              !_isConfirmPasswordVisible;
                         });
                       },
                     ),

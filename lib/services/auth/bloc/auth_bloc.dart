@@ -7,7 +7,7 @@ import 'package:infinity_notes/services/auth/bloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(AuthProvider provider) : super(const AuthStateUninitialized(isLoading: true)) {
-   //Initialize
+    //Initialize
     on<AuthEventInitialize>((event, emit) async {
       await provider.initialize();
 
@@ -22,7 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user == null) {
         emit(const AuthStateLoggedOut(exception: null, isLoading: false));
       } else if (!user.isEmailVerified) {
-        emit(const AuthStateNeedsVerification(isLoading: false));
+        emit(const AuthStateNeedsEmailVerification(isLoading: false));
       } else {
         emit(AuthStateLoggedIn(user:user, isLoading: false));
       }
@@ -48,7 +48,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
         if (!freshUser.isEmailVerified) {
           emit(const AuthStateLoggedOut(exception: null, isLoading: false));
-          emit(const AuthStateNeedsVerification(isLoading: false));
+          emit(const AuthStateNeedsEmailVerification(isLoading: false));
         } else {
           emit(const AuthStateLoggedOut(exception: null, isLoading: false));
           emit(AuthStateLoggedIn(user: freshUser, isLoading: false));
@@ -107,7 +107,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           email: email,
           password: password,
         );
-        emit(const AuthStateNeedsVerification(isLoading: false));
+        emit(const AuthStateNeedsEmailVerification(isLoading: false));
       } on AuthException catch (e) {
         emit(AuthStateRegistering(exception: e, isLoading: false));
       } on Exception catch (e) {
@@ -117,11 +117,57 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         ));
       }
     });
+    //Should Register
+    on<AuthEventShouldRegister>((event, emit) {
+      emit(const AuthStateRegistering(
+        exception: null,
+        isLoading: false,
+      ));
+    });
+    //Should Verify Email
+    on<AuthEventShouldVerifyEmail>((event, emit) async {
+      emit(const AuthStateNavigateToVerifyEmail());
+    });
     //Send Verification Email
     on<AuthEventSendEmailVerification>((event, emit) async
     {
       await provider.sendEmailVerification();
       emit(state);
+    });
+    //Reset Password
+    on<AuthEventResetPassword>((event, emit) async {
+      emit(const AuthStateForgotPassword(
+        exception: null,
+        isLoading: true,
+        hasSentEmail: false,
+      ));
+      final email = event.email;
+      if (email == null || email.isEmpty) {
+        emit(const AuthStateForgotPassword(
+          exception: null,
+          isLoading: false,
+          hasSentEmail: false,
+        ));
+        return;
+      }
+      bool didSendEmail;
+      Exception? exception;
+      try {
+        await provider.sendPasswordReset(email: email);
+        didSendEmail = true;
+        exception = null;
+      } on AuthException catch (e) {
+        didSendEmail = false;
+        exception = e;
+      } on Exception catch (e) {
+        didSendEmail = false;
+        exception = GenericAuthException(e.toString());
+      }
+      emit(AuthStateForgotPassword(
+        exception: exception,
+        isLoading: false,
+        hasSentEmail: didSendEmail,
+      ));
     });
   }
 }

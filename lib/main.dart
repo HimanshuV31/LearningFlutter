@@ -5,6 +5,7 @@ import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_state.dart';
 import 'package:infinity_notes/services/auth/firebase_auth_provider.dart';
+import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 import 'package:infinity_notes/views/login_view.dart';
 import 'package:infinity_notes/views/notes/create_update_note_view.dart';
 import 'package:infinity_notes/views/notes/notes_view.dart';
@@ -82,14 +83,14 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     // return BlocListener<AuthBloc, AuthState>(
     return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         // if (state is AuthStateLoggedOut) {
         //   Navigator.of(context).pushNamedAndRemoveUntil(
         //       loginRoute, (route) => false);
         // } else if (state is AuthStateLoggedIn) {
         //   Navigator.of(context).pushNamedAndRemoveUntil(
         //       notesRoute, (route) => false);
-        // } else if (state is AuthStateNeedsVerification) {
+        // } else if (state is AuthStateNeedsEmailVerification) {
         //   Navigator.of(context).pushNamedAndRemoveUntil(
         //       verifyEmailRoute, (route) => false);
         // }
@@ -100,17 +101,35 @@ class _HomePageState extends State<HomePage> {
           );}else{
           LoadingScreen().hide();
         }
+        if(state is AuthStateNeedsEmailVerification)
+          {
+            final bool? _shouldVerify = await showWarningDialog(
+                context: context,
+                title: "Verification Pending",
+                message: "Please verify your email to continue.",
+                buttonText: "Verify Now"
+            );
+            if (_shouldVerify == true) {
+              context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
+            }
+          }
+        if(state is AuthStateNavigateToVerifyEmail){
+          const VerifyEmailView();
+        }
       },
       // child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is AuthStateLoggedIn) {
             return const NotesView();
-          } else if (state is AuthStateNeedsVerification) {
+          } else if (state is AuthStateNavigateToVerifyEmail) {
             return const VerifyEmailView();
           } else if (state is AuthStateLoggedOut) {
             return const LoginView();
           }else if(state is AuthStateRegistering){
             return const RegisterView();
+          }
+          else if(state is AuthStateForgotPassword && state.hasSentEmail){
+            return const  LoginView();
           }
           else {
             return const Scaffold(
