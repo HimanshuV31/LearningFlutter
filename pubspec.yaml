@@ -46,7 +46,7 @@ flutter:
 # ---- Splash screen ----
 flutter_native_splash:
   color: "#3993ad"
-  image: assets/icons/Infinity_Notes_Icon.png
+  image: assets/icons/Infinity_Notes_Splash.png
   android: true
   ios: true
   android_gravity: center
@@ -54,9 +54,10 @@ flutter_native_splash:
 
 # ---- App icons ----
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
   image_path: assets/icons/Infinity_Notes_Icon.png
   adaptive_icon_background: "#3993ad"
   adaptive_icon_foreground: assets/icons/Infinity_Notes_Icon.png
   adaptive_icon_foreground_padding: 20  # prevents icon from zooming
+  remove_alpha_ios: true

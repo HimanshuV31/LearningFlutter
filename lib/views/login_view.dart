@@ -222,6 +222,7 @@ class _LoginViewState extends State<LoginView> {
               "Or sign in with a social account",
               style: TextStyle(fontSize: 16, color: Colors.black54),
             ),
+            const SizedBox(height: 10),
             //Row for Social Logins
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
