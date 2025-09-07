@@ -1,0 +1,11 @@
+dev_dependencies:
+  flutter_launcher_icons: 0.14.4
+
+flutter_icons:
+android: true
+ios: true
+image_path: assets/icons/Infinity_Notes_Icon.png
+adaptive_icon_background: "#3993ad"
+adaptive_icon_foreground: assets/icons/Infinity_Notes_Icon.png
+adaptive_icon_foreground_padding: 20
+remove_alpha_ios: true
