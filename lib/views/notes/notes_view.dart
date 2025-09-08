@@ -44,8 +44,7 @@ class _NotesViewState extends State<NotesView> {
   }
   // Future<void> openNote(DatabaseNote note) async {
   Future<void> openNote(CloudNote note) async {
-    await Navigator.of(
-      context,
+    await Navigator.of(context,
     ).pushNamed(CreateUpdateNoteRoute, arguments: note);
   }
 
@@ -72,7 +71,6 @@ class _NotesViewState extends State<NotesView> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthStateLoggedOut && state.exception != null) {
-
           final closeDialog=_closeDialogHandle;
           if(!state.isLoading && closeDialog!=null){
             closeDialog();
@@ -172,61 +170,58 @@ class _NotesViewState extends State<NotesView> {
                   //           return Center(child: Text(snapshot.error.toString()));
                   //         } else if (snapshot.hasData) {
                   //           final user = snapshot.data!; // 👈 got DatabaseUser
-                  FutureBuilder<Stream<Iterable<CloudNote>>>(
-                    future:
-                        _notesService.allNotes(ownerUserId: userId)
-                            as Future<Stream<Iterable<CloudNote>>>?,
-                    builder: (context, futureSnapshot) {
-                      if (futureSnapshot.connectionState !=
-                          ConnectionState.done) {
+                  StreamBuilder<Iterable<CloudNote>>(
+                    stream: _notesService.allNotes(ownerUserId: userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (futureSnapshot.hasError) {
+                      if (snapshot.hasError) {
                         return Center(
-                          child: Text("Error: ${futureSnapshot.error}"),
+                          child: Text("Error: ${snapshot.error}"),
                         );
                       }
-                      if (!futureSnapshot.hasData) {
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return const Center(child: Text("No notes found."));
                       }
-
-                      // }
-                      return StreamBuilder<Iterable<CloudNote>>(
-                        // stream: _notesService.notesForUser(user.id),
-                        stream: futureSnapshot.data,
-                        builder: (context, snapshot) {
-                          switch (snapshot.connectionState) {
-                            case ConnectionState.waiting:
-                            case ConnectionState.active:
-                              if (snapshot.hasData) {
-                                final allNotes = snapshot
-                                    .data; /* as List<DatabaseNote>;  //👈 your note model*/
-
-                                // //Filter
-                                // final realNotes = allNotes
-                                //     .where(
-                                //       (n) =>
-                                //           n.text.trim().isNotEmpty ||
-                                //           n.title.trim().isNotEmpty,
-                                //     )
-                                //     .toList();
-                                // realNotes.sort((a, b) {
-                                //   final dateA = DateTime.parse(a.updatedAt);
-                                //   final dateB = DateTime.parse(b.updatedAt);
-                                //   return dateB.compareTo(dateA);
-                                // }); /*No need to filter the notes as they
-                                //       are already filtered in the cloud storage*/
-                                // if (realNotes.isEmpty) {
-                                if (allNotes!.isEmpty) {
-                                  return const Center(
-                                    child: Text("No notes yet. Create one!"),
-                                  );
-                                }
-
+                        final allNotes = snapshot.data;
+                      // // }
+                      // return StreamBuilder<Iterable<CloudNote>>(
+                      //   // stream: _notesService.notesForUser(user.id),
+                      //   stream: snapshot.data,
+                      //   builder: (context, snapshot) {
+                      //     switch (snapshot.connectionState) {
+                      //       case ConnectionState.waiting:
+                      //       case ConnectionState.active:
+                      //         if (snapshot.hasData) {
+                      //           final allNotes = snapshot
+                      //               .data; /* as List<DatabaseNote>;  //👈 your note model*/
+                      //
+                      //           // //Filter
+                      //           // final realNotes = allNotes
+                      //           //     .where(
+                      //           //       (n) =>
+                      //           //           n.text.trim().isNotEmpty ||
+                      //           //           n.title.trim().isNotEmpty,
+                      //           //     )
+                      //           //     .toList();
+                      //           // realNotes.sort((a, b) {
+                      //           //   final dateA = DateTime.parse(a.updatedAt);
+                      //           //   final dateB = DateTime.parse(b.updatedAt);
+                      //           //   return dateB.compareTo(dateA);
+                      //           // }); /*No need to filter the notes as they
+                      //           //       are already filtered in the cloud storage*/
+                      //           // if (realNotes.isEmpty) {
+                      //           if (allNotes!.isEmpty) {
+                      //             return const Center(
+                      //               child: Text("No notes yet. Create one!"),
+                      //             );
+                      //           }
                                 if (_showListView) {
                                   return NotesListView(
                                     // notes: realNotes,
-                                    notes: allNotes,
+                                    notes: allNotes!,
                                     onTapNote: (note) => openNote(note),
                                     onLongPressNote: (note) =>
                                         handleLongPressNote(
@@ -238,7 +233,7 @@ class _NotesViewState extends State<NotesView> {
                                 } else {
                                   return NotesTileView(
                                     // notes: realNotes,
-                                    notes: allNotes,
+                                    notes: allNotes!,
                                     onTapNote: (note) => openNote(note),
                                     onLongPressNote: (note) =>
                                         handleLongPressNote(
@@ -248,18 +243,19 @@ class _NotesViewState extends State<NotesView> {
                                         ),
                                   );
                                 }
-                              } else {
-                                return const Center(
-                                  child: Text("No notes found."),
-                                );
-                              }
-                            default:
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                          }
-                        },
-                      );
+                              // }
+                              // else {
+                              //   return const Center(
+                              //     child: Text("No notes found."),
+                              //   );
+                              // }
+                            // default:
+                            //   return const Center(
+                            //     child: CircularProgressIndicator(),
+                            //   );
+                          // }
+                        // },
+                      // );
                       // ),
 
                       //         } else {
@@ -268,12 +264,12 @@ class _NotesViewState extends State<NotesView> {
                       //       default:
                       //         return const Center(child:CircularProgressIndicator());
                       //     }
-                    },
-                  ) /*FutureBuilder*/,
-            ),
-          ),
-        ],
-      ),
+                    }, //builder
+                  ), //streambuilder
+            ), //body:safearea
+          ), //scaffold
+        ], //children
+      ), //child:stack
     );
   }
 }

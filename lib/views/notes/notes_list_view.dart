@@ -39,12 +39,13 @@ class NotesListView extends StatelessWidget {
         shrinkWrap: true,
         itemBuilder: (context, index) {
           // final note = notes[index];
-          final note = notes.elementAt(index);
+          final note = notes.elementAt( index);
           return NoteListTile(
             note: note,
             onTap: () => onTapNote(note),
             onLongPress: () => onLongPressNote(note),
           );
+
         },
       );
     } else {

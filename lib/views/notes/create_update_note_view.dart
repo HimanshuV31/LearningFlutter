@@ -7,6 +7,7 @@ import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/services/notes_actions/delete_note.dart';
 import 'package:infinity_notes/services/notes_actions/share_note.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
+import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 // import '../../services/crud/notes_service.dart';
 
@@ -190,16 +191,13 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
           PopupMenuButton<String>(
             onSelected: (value) async {
               if (value == "delete" && _note != null) {
-                final delete = await showDeleteDialog(context: context);
-                if (delete) {
-                  await deleteNote(
-                    context: context,
-                    note: _note!,
-                    notesService: _notesService,
-                  );
-                  if (!mounted) return;
-                  Navigator.of(context).pop();
+                final confirm = await showDeleteDialog(context: context);
+                if (confirm) {
+                  await _notesService.deleteNote(documentId: _note!.documentId);
+                  showCustomToast(context, "Note Deleted Successfully");
                 }
+                if (!mounted) return;
+                Navigator.of(context).pop();
               }
             },
             itemBuilder: (context) => const [

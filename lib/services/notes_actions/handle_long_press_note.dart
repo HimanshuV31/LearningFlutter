@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
-import 'package:infinity_notes/services/notes_actions/delete_note.dart';
 import 'package:infinity_notes/services/notes_actions/share_note.dart';
+import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
+import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 
 Future<String?> showNoteActionsDialog({
   required BuildContext context,
@@ -90,9 +91,12 @@ Future<void> handleLongPressNote({
       shareNote(note: note, context: context);
       break;
     case 'delete':
-      deleteNote(context: context, note: note, notesService: notesService);
-      break;
-
+      final confirm = await showDeleteDialog(context: context);
+      if(confirm) {
+        await notesService.deleteNote(documentId: note.documentId);
+        showCustomToast(context, "Note Deleted Successfully");
+        break;
+      }
     // case 'archive':
     //   // Future feature handling
     //   break;

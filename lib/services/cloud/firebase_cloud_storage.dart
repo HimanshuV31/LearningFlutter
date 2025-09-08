@@ -60,9 +60,9 @@ class FirebaseCloudStorage {
   //   }
   // }
 
-  Future<Stream<Iterable<CloudNote>>> allNotes({
+  Stream<Iterable<CloudNote>> allNotes({
     required String ownerUserId,
-  }) async {
+  }) {
     final allNotes = notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .snapshots()
