@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
+  final String? title;
+  final Widget? titleWidget;
   final List<Widget>? actions;
   final Color backgroundColor;
   final Color foregroundColor;
   final Color? themeColor;
   final IconButton? leading;
 
+
   const CustomAppBar({
     super.key,
     required this.title,
     this.themeColor,
+    this.titleWidget,
     required this.foregroundColor,
     required this.backgroundColor,
     this.actions,
@@ -22,10 +25,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final double fontSize = 23;
     final double strokeWidth = 2;
     return AppBar(
-      title: Stack(
+      title:  titleWidget ?? (title != null ? Stack(
         children: [
           Text(
-            title,
+            title!,
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
@@ -36,7 +39,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           Text(
-            title,
+            title!,
             style: TextStyle(
               fontSize: 23,
               fontWeight: FontWeight.bold,
@@ -44,7 +47,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         ],
-      ),
+      ) : null),
       backgroundColor: themeColor ?? backgroundColor ,
       foregroundColor: foregroundColor,
       elevation: 0,
