@@ -1,0 +1,194 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infinity_notes/services/search/bloc/search_bloc.dart';
+import 'package:infinity_notes/services/search/bloc/search_event.dart';
+
+class SearchBar extends StatefulWidget {
+  final bool isExpanded;
+  final Function(String)? onChanged;
+  final VoidCallback? onToggleView;
+  final bool isListView;
+  final VoidCallback? onClose;
+
+  const SearchBar({
+    super.key,
+    required this.isExpanded,
+    this.onChanged,
+    this.onToggleView,
+    required this.isListView,
+    this.onClose,
+  });
+
+  @override
+  State<SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<SearchBar> with TickerProviderStateMixin {
+  final _controller = TextEditingController();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onTextChanged);
+
+    //Title Animation Setup
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation = Tween<double>(begin: -20.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+
+    //Start Animation if Expanded
+    if (widget.isExpanded) {
+      _animationController.forward();
+    }
+  }
+
+  void _onTextChanged() {
+    context.read<SearchBloc>().add(SearchQueryChanged(_controller.text));
+    if (widget.onChanged != null) {
+      widget.onChanged!(_controller.text);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant SearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isExpanded != widget.isExpanded) {
+      if (widget.isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+        _controller.clear();
+        context.read<SearchBloc>().add(const SearchCleared());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTextChanged);
+    _controller.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isExpanded) {
+      return const SizedBox.shrink();
+    }
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: Transform.translate(
+            offset: Offset(0.0, _slideAnimation.value),
+            child: Container(
+              height: 48,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(15),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.white.withAlpha(20), width: 1),
+              ),
+              child: Row(
+                children: [
+                  //Search Icon (Leading)
+                  Padding(
+                    padding: EdgeInsets.only(left: 10, right: 12),
+                    child: Icon(
+                      Icons.search,
+                      color: Colors.white.withAlpha(80),
+                      size: 22,
+                    ),
+                  ),
+
+                  //Search TextField
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      autofocus: widget.isExpanded,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: "Search Notes",
+                        hintStyle: TextStyle(
+                          color: Colors.white.withAlpha(70),
+                          fontSize: 16,
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+
+                  //Action Buttons (Google Keep Style - overlayed on Search Bar)
+                  _buildActionIcons(),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  //Build overlayed action icons
+  Widget _buildActionIcons() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        //Clear Search (only when text exists)
+        if (_controller.text.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.clear, size: 20, color: Colors.white70),
+            onPressed: () {
+              _controller.clear();
+              context.read<SearchBloc>().add(const SearchCleared());
+            },
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+
+        // View Toggle (List/Grid)
+        if (widget.onToggleView != null)
+          IconButton(
+            icon: Icon(
+              widget.isListView ? Icons.grid_view : Icons.view_agenda,
+              size: 20,
+              color: Colors.white70,
+            ),
+            onPressed: widget.onToggleView,
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+
+        //Close Search
+        if (widget.onClose != null)
+          IconButton(
+            icon: const Icon(Icons.close, size: 20, color: Colors.white70),
+            onPressed: widget.onClose,
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+        const SizedBox(width: 8), // Right Padding
+      ],
+    );
+  }
+}

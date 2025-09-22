@@ -43,7 +43,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         {
         emit(SearchEmpty(query: query));}
         else{
-          emit(SearchResults(notes: results, query: query));
+          emit(SearchResults(results: results, query: query));
         }
       } catch (e){
         emit(SearchError("Error searching: ${e.toString()}"));

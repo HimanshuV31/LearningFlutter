@@ -8,9 +8,9 @@ class SearchService {
     if (query.isEmpty) return notes;
 
     final searchTerm = query.toLowerCase();
-    return notes.where((note) {
-      return note.title.toLowerCase().contains(searchTerm) ||
-          note.text.toLowerCase().contains(searchTerm);
-    });
+    return notes.where((note) =>
+          note.title.toLowerCase().contains(searchTerm)
+      ||  note.text.toLowerCase().contains(searchTerm)
+    );
   }
 }

@@ -13,9 +13,13 @@ class SearchLoading extends SearchState {
 }
 
 class SearchResults extends SearchState {
-  final Iterable<CloudNote> notes;
+  final Iterable<CloudNote> results;
   final String query;
-  const SearchResults( {required this.notes, required this.query});
+
+  const SearchResults({
+    required this.results,
+    required this.query,
+  });
 }
 
 class SearchError extends SearchState {
