@@ -317,14 +317,6 @@ class NotesService {
       );
       //Enable Foreign Keys first
       await _db?.execute("PRAGMA foreign_keys = ON");
-      // //Creating the User Table
-      // await db.execute(createUserTable);
-      // //Creating the Note Table
-      // await db.execute(createNoteTable);
-      // //Creating the Timestamp Trigger
-      // await db.execute(createUpdateTrigger);
-
-      // } on MissingPlatformDirectoryException {
     } on CrudException catch (e) {
       if (e.code != 'missing-platform-directory') {
         rethrow;

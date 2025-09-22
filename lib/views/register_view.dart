@@ -56,51 +56,11 @@ class _RegisterViewState extends State<RegisterView> {
   Future<void> register() async {
     final _email = _emailController.text.trim();
     final _password = _passwordController.text.trim();
-
     if (!_formKey.currentState!.validate()) return;
     if (!_passwordsMatch) return;
     context.read<AuthBloc>().add(
       AuthEventRegister(email: _email, password: _password),
     );
-    // try {
-    //   await AuthService.firebase().createUser(
-    //     email: _email,
-    //     password: _password,
-    //   );
-    //   if (!mounted) return;
-    //   await showCustomRoutingDialog(
-    //     context: context,
-    //     title: "Verification Pending",
-    //     content: "Please verify your email to continue.",
-    //     routeButtonText: "Verify Now",
-    //     routeToPush: verifyEmailRoute,
-    //     cancelButtonText: null,
-    //     cancelButtonStyle: null,
-    //     barrierDismissible: false,
-    //     routeButtonStyle: TextButton.styleFrom(
-    //       backgroundColor: Colors.blue,
-    //     ),
-    //   );
-    // } on AuthException catch (e) {
-    //   final authError = AuthException.fromCode(e.code);
-    //   String message = authError.message;
-    //   String errorTitle = authError.title;
-    //   await showWarningDialog(
-    //     context: context,
-    //     title: errorTitle,
-    //     message: message,
-    //   );
-    //   if (!mounted) return;
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(SnackBar(content: Text(message)));
-    // } catch (e) {
-    //   await showWarningDialog(
-    //     context: context,
-    //     title: "Unknown Error",
-    //     message: "Unknown Error: $e",
-    //   );
-    // }
   }
 
   Widget _buildPasswordCriteria(String text, bool condition) {
@@ -126,25 +86,6 @@ class _RegisterViewState extends State<RegisterView> {
     const foregroundColor = Colors.white;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-        // if (state is AuthStateNeedsEmailVerification) {
-        //   final closeDialog = _closeDialogHandle;
-        //   if (!state.isLoading && closeDialog != null) {
-        //     closeDialog();
-        //     _closeDialogHandle = null;
-        //   }
-        //   final bool? _shouldVerify = await showWarningDialog(
-        //       context: context,
-        //       title: "Verification Pending",
-        //       message: "Please verify your email to continue.",
-        //       buttonText: "Verify Now"
-        //   );
-        //   if (_shouldVerify == true) {
-        //     context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
-        //   }
-        // }
-        // if (state is AuthStateNavigateToVerifyEmail) {
-        //   // This triggers UI rebuild, and builder returns VerifyEmailView here
-        // }
         if (state.isLoading) {
           LoadingScreen().show(context: context, text: state.loadingText ?? "Please wait...");
         } else {

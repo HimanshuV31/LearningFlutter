@@ -27,61 +27,6 @@ class _LoginViewState extends State<LoginView> {
     final password = passwordController.text.trim();
 
     context.read<AuthBloc>().add(AuthEventLogIn(email, password));
-    // try {
-      // await auth.logIn(email: email, password: password);
-      //
-      // final user = auth.currentUser;
-      //
-      // if (user != null) {
-      //   if (user.isEmailVerified) {
-      //     if (!mounted) return;
-      //     // Navigate to home page if email is verified
-      //     showCustomToast(context, "Login Successful");
-      //     Navigator.pushNamedAndRemoveUntil(context, notesRoute, (_) => false);
-      //   } else {
-      //     // If email not verified, show message and maybe redirect
-      //     if (!mounted) return;
-      //     await showCustomRoutingDialog(
-      //       context: context,
-      //       title: "Verification Pending",
-      //       content: "Please verify your email to continue.",
-      //       routeButtonText: "Verify Now",
-      //       routeToPush: verifyEmailRoute,
-      //       cancelButtonText: null,
-      //       cancelButtonStyle: null,
-      //       barrierDismissible: false,
-      //       routeButtonStyle: TextButton.styleFrom(
-      //         backgroundColor: Colors.blue,
-      //       ),
-      //     );
-      //   }
-      // }
-    // } on AuthException catch (e) {
-    //   final authError = AuthException.fromCode(e.code);
-    //   String message = authError.message;
-    //   String errorTitle = authError.title;
-    //   if (e.code == "invalid-credential" || e.code == "invalid-email") {
-    //     emailController.clear();
-    //   }
-    //   if (!mounted) return;
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(SnackBar(content: Text(message)));
-    //   await showWarningDialog(
-    //     context: context,
-    //     title: errorTitle,
-    //     message: message,
-    //   );
-    // } catch (e) {
-    //   if (!mounted) return;
-    //   await showWarningDialog(
-    //     context: context,
-    //     title: "Unknown Error",
-    //     message: "Unknown Error: $e",
-    //   );
-    // } finally {
-    //   passwordController.clear();
-    // }
   }
   @override
   void dispose() {
@@ -96,22 +41,6 @@ class _LoginViewState extends State<LoginView> {
     const foregroundColor = Colors.white;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-        // if (state is AuthStateNeedsEmailVerification) {
-        //   final closeDialog = _closeDialogHandle;
-        //   if (!state.isLoading && closeDialog != null) {
-        //     closeDialog();
-        //     _closeDialogHandle = null;
-        //   }
-        //   final bool? _shouldVerify = await showWarningDialog(
-        //       context: context,
-        //       title: "Verification Pending",
-        //       message: "Please verify your email to continue.",
-        //       buttonText: "Verify Now"
-        //   );
-        //   if (_shouldVerify == true) {
-        //     context.read<AuthBloc>().add(const AuthEventShouldVerifyEmail());
-        //   }
-        // }else
           if (state is AuthStateLoggedOut && state.exception != null) {
           // Display error dialogs for login failure
           final e = state.exception;
@@ -126,7 +55,6 @@ class _LoginViewState extends State<LoginView> {
           }
         }
       },
-
       child: Scaffold(
       appBar: CustomAppBar(
         title: "Infinity Notes | Login",
@@ -162,7 +90,6 @@ class _LoginViewState extends State<LoginView> {
               children: [
                 // Registration button
                 TextButton(
-                  // onPressed: () => Navigator.pushNamed(context, registerRoute),
                   onPressed: () {
                     context.read<AuthBloc>().add(const AuthEventShouldRegister());
                   },
@@ -230,29 +157,6 @@ class _LoginViewState extends State<LoginView> {
                 // Google
                 GestureDetector(
                   onTap: () async {
-                  //   try {
-                  //     final user = await auth.logInWithGoogle();
-                  //     if (user != null) {
-                  //       if (!mounted) return;
-                  //       showCustomToast(context, "Login Successful via Google");
-                  //       Navigator.pushNamedAndRemoveUntil(
-                  //         context,
-                  //         notesRoute,
-                  //         (_) => false,
-                  //       );
-                  //     }
-                  //   } on AuthException catch (e) {
-                  //     if (!mounted) return;
-                  //     if (e.code == 'cancelled') {
-                  //       return;
-                  //     } else {
-                  //       await showWarningDialog(
-                  //         context: context,
-                  //         title: "Google Sign-In Failed",
-                  //         message: e.toString(),
-                  //       );
-                  //     }
-                  //   }
                     context.read<AuthBloc>().add(AuthEventGoogleSignIn());
                   },
                   child: Column(
@@ -269,28 +173,6 @@ class _LoginViewState extends State<LoginView> {
                   const SizedBox(width: 40),
                   GestureDetector(
                     onTap: () async {
-                      // try {
-                      //   final user = await auth.logInWithApple();
-                      //   if (user != null && user.isEmailVerified) {
-                      //     if (!mounted) return;
-                      //     showCustomToast(
-                      //       context,
-                      //       "Login Successful via Apple",
-                      //     );
-                      //     Navigator.pushNamedAndRemoveUntil(
-                      //       context,
-                      //       notesRoute,
-                      //       (_) => false,
-                      //     );
-                      //   }
-                      // } catch (e) {
-                      //   if (!mounted) return;
-                      //   await showWarningDialog(
-                      //     context: context,
-                      //     title: "Apple Sign-In Failed",
-                      //     message: e.toString(),
-                      //   );
-                      // }
                       context.read<AuthBloc>().add(AuthEventAppleSignIn());
                     },
                     child: Column(

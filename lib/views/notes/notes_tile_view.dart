@@ -6,10 +6,6 @@ import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
 
 class NotesTileView extends StatelessWidget {
-  // final List<DatabaseNote> notes;
-  // final Function(DatabaseNote) onTapNote;
-  // final Function(DatabaseNote) onLongPressNote;
-
   final Iterable<CloudNote> notes;
   final Function(CloudNote) onTapNote;
   final Function(CloudNote) onLongPressNote;
@@ -53,7 +49,6 @@ class NotesTileView extends StatelessWidget {
 class _NoteTile extends StatelessWidget {
   const _NoteTile({required this.note, this.onTap, this.onLongPress});
 
-  // final DatabaseNote note;
   final CloudNote note;
   static const maxTextLines = 10;
   final VoidCallback? onTap;

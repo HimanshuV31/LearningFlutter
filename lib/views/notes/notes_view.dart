@@ -33,10 +33,7 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   String get userEmail => AuthService.firebase().currentUser!.email;
-
-  // late final NotesService _notesService;
   late final FirebaseCloudStorage _notesService;
-
   String get userId => AuthService.firebase().currentUser!.id;
   CloseDialog? _closeDialogHandle;
   late bool _showListView = false;
@@ -48,7 +45,6 @@ class _NotesViewState extends State<NotesView> {
     await Navigator.of(context).pushNamed(CreateUpdateNoteRoute);
   }
 
-  // Future<void> openNote(DatabaseNote note) async {
   Future<void> openNote(CloudNote note) async {
     await Navigator.of(
       context,
@@ -58,7 +54,6 @@ class _NotesViewState extends State<NotesView> {
   @override
   void initState() {
     _notesService = FirebaseCloudStorage();
-    // _notesService.open();
     _searchBloc = SearchBloc();
     super.initState();
   }
@@ -72,7 +67,6 @@ class _NotesViewState extends State<NotesView> {
 
   @override
   Widget build(BuildContext context) {
-    // final _userEmail = AuthService.firebase().currentUser?.email;
     return BlocProvider.value(
       value: _searchBloc,
       child: BlocListener<AuthBloc, AuthState>(
@@ -107,15 +101,6 @@ class _NotesViewState extends State<NotesView> {
               backgroundColor: Colors.transparent,
               body: SafeArea(
                 child:
-                    // FutureBuilder<DatabaseUser>(
-                    //   future: _notesService.getOrCreateUser(email: userEmail),
-                    //   builder: (context, snapshot) {
-                    //     switch (snapshot.connectionState) {
-                    //       case ConnectionState.done:
-                    //         if (snapshot.hasError) {
-                    //           return Center(child: Text(snapshot.error.toString()));
-                    //         } else if (snapshot.hasData) {
-                    //           final user = snapshot.data!; // 👈 got DatabaseUser
                     StreamBuilder<Iterable<CloudNote>>(
                       stream: _notesService.allNotes(ownerUserId: userId),
                       builder: (context, snapshot) {
@@ -130,9 +115,6 @@ class _NotesViewState extends State<NotesView> {
                             child: Text("Error: ${snapshot.error}"),
                           );
                         }
-                        // if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        //   return const Center(child: Text("No notes found."));
-                        // }
                         final allNotes = snapshot.data ?? <CloudNote>[];
                         final hasNotes = allNotes.isNotEmpty;
 
@@ -153,6 +135,7 @@ class _NotesViewState extends State<NotesView> {
                               onSearchChanged: (query) =>
                                   _searchBloc.add(SearchQueryChanged(query)),
                             ), // CustomSliverAppBar
+
                             //Notes with Search Implementation
                             BlocBuilder<SearchBloc, SearchState>(
                               builder: (context, searchState) {
@@ -164,84 +147,6 @@ class _NotesViewState extends State<NotesView> {
                             ), //BlocBuilder for Notes and Search
                           ], // slivers
                         ); //return statement (CustomScrollView)
-                        // // }
-                        // return StreamBuilder<Iterable<CloudNote>>(
-                        //   // stream: _notesService.notesForUser(user.id),
-                        //   stream: snapshot.data,
-                        //   builder: (context, snapshot) {
-                        //     switch (snapshot.connectionState) {
-                        //       case ConnectionState.waiting:
-                        //       case ConnectionState.active:
-                        //         if (snapshot.hasData) {
-                        //           final allNotes = snapshot
-                        //               .data; /* as List<DatabaseNote>;  //👈 your note model*/
-                        //
-                        //           // //Filter
-                        //           // final realNotes = allNotes
-                        //           //     .where(
-                        //           //       (n) =>
-                        //           //           n.text.trim().isNotEmpty ||
-                        //           //           n.title.trim().isNotEmpty,
-                        //           //     )
-                        //           //     .toList();
-                        //           // realNotes.sort((a, b) {
-                        //           //   final dateA = DateTime.parse(a.updatedAt);
-                        //           //   final dateB = DateTime.parse(b.updatedAt);
-                        //           //   return dateB.compareTo(dateA);
-                        //           // }); /*No need to filter the notes as they
-                        //           //       are already filtered in the cloud storage*/
-                        //           // if (realNotes.isEmpty) {
-                        //           if (allNotes!.isEmpty) {
-                        //             return const Center(
-                        //               child: Text("No notes yet. Create one!"),
-                        //             );
-                        //           }
-                        //           if (_showListView) {
-                        //             return NotesListView(
-                        //               // notes: realNotes,
-                        //               notes: allNotes!,
-                        //               onTapNote: (note) => openNote(note),
-                        //               onLongPressNote: (note) =>
-                        //                   handleLongPressNote(
-                        //                     context: context,
-                        //                     note: note,
-                        //                     notesService: _notesService,
-                        //                   ),
-                        //             );
-                        //           } else {
-                        //             return NotesTileView(
-                        //               // notes: realNotes,
-                        //               notes: allNotes!,
-                        //               onTapNote: (note) => openNote(note),
-                        //               onLongPressNote: (note) =>
-                        //                   handleLongPressNote(
-                        //                     context: context,
-                        //                     note: note,
-                        //                     notesService: _notesService,
-                        //                   ),
-                        //             );
-                        //           }
-                        // }
-                        // else {
-                        //   return const Center(
-                        //     child: Text("No notes found."),
-                        //   );
-                        // }
-                        // default:
-                        //   return const Center(
-                        //     child: CircularProgressIndicator(),
-                        //   );
-                        // }
-                        // },
-                        // );
-                        // ),
-
-                        //         } else {
-                        //           return const Center(child: Text("Error loading user"));
-                        //         }
-                        //       default:
-                        //         return const Center(child:CircularProgressIndicator());
-                        //     }
                       }, //builder
                     ), //streamBuilder
               ), //body:safeArea

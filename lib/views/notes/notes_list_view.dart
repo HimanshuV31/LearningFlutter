@@ -5,9 +5,6 @@ import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
 
 class NotesListView extends StatelessWidget {
-  // final List<DatabaseNote> notes;
-  // final Function(DatabaseNote) onLongPressNote;
-  // final Function(DatabaseNote) onTapNote;
   final Iterable<CloudNote> notes;
   final Function(CloudNote) onTapNote;
   final Function(CloudNote) onLongPressNote;
@@ -30,7 +27,6 @@ class NotesListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final columns = _getCrossAxisCount();
-
     if (columns == 1) {
       // ListView for mobiles
       return ListView.builder(
@@ -38,7 +34,6 @@ class NotesListView extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          // final note = notes[index];
           final note = notes.elementAt( index);
           return NoteListTile(
             note: note,
@@ -91,7 +86,6 @@ class NoteListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     const backgroundColor = Color(0xFF3993ad);
     const foregroundColor = Colors.white60;
-    // final hasText = note.text.trim().isNotEmpty;
 
     return GestureDetector(
       onTap: onTap,

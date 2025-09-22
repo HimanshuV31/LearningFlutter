@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
@@ -9,7 +8,6 @@ import 'package:infinity_notes/services/notes_actions/share_note.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
-// import '../../services/crud/notes_service.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -21,12 +19,7 @@ class CreateUpdateNoteView extends StatefulWidget {
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   final Color backgroundColor = const Color(0xFF62B0D5);
   final Color foregroundColor = Colors.white;
-
   CloudNote? _note;
-
-  // DatabaseNote? _note;
-
-  // late final NotesService _notesService;
   late final FirebaseCloudStorage _notesService;
   late final TextEditingController _titleController;
   late final TextEditingController _textController;
@@ -39,7 +32,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   @override
   void initState() {
     super.initState();
-    // _notesService = NotesService();
     _notesService = FirebaseCloudStorage();
     _titleController = TextEditingController();
     _textController = TextEditingController();
@@ -63,7 +55,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
 
   void _debouncedHandleChange() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-
     _debounce = Timer(const Duration(milliseconds: 500), () {
       _handleChange();
     });
@@ -97,13 +88,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   }
 
   Future<void> _createNote(String userId, String title, String text) async {
-    // final owner = await _notesService.getUser(email: email);
-    // // Older create note logic:
-    // final newNote = await _notesService.createNote(
-    //   owner: owner,
-    //   title: title,
-    //   text: text,
-    // );
     final newNote = await _notesService.createNewNote(
       ownerUserId: userId,
       title: title,
@@ -117,11 +101,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   }
 
   Future<void> _updateNote(String title, String text) async {
-    // final updatedNote = await _notesService.updateNote(
-    //   note: _note!,
-    //   title: title,
-    //   text: text,
-    // );
     await _notesService.updateNote(
       documentId: _note!.documentId,
       title: title,
@@ -130,8 +109,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     setState(() {
       _initialTitle = title;
       _initialText = text;
-      // If updateNote returns updated note, assign here:
-      // _note = updatedNote;
     });
   }
 

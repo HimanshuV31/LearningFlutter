@@ -13,17 +13,6 @@ abstract class AuthState {
   });
 }
 
-// class AuthStateLoginFailure extends AuthState{
-//   final Exception exception;
-//   const AuthStateLoginFailure(this.exception);
-// }
-// class AuthStateLoading extends AuthState{
-//   const AuthStateLoading();
-// }
-// class AuthStateLogoutFailure extends AuthState{
-//   final Exception exception;
-//   const AuthStateLogoutFailure(this.exception);
-// }
 class AuthStateLoggedIn extends AuthState {
   const AuthStateLoggedIn({
     required this.user,

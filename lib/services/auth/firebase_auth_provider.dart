@@ -37,7 +37,6 @@ class FirebaseAuthProvider implements AuthProvider {
         throw const UserNotFoundAuthException();
       }
     } on FirebaseAuthException catch (e) {
-      // throw getAuthErrorMessage(e.code); /*older one*/
       throw AuthException.fromCode(e.code);
     } catch (e) {
       throw GenericAuthException("$e.code");
@@ -131,7 +130,6 @@ class FirebaseAuthProvider implements AuthProvider {
     await gsi.initialize();
 
     final account = await gsi.authenticate();
-    // ignore: unnecessary_null_comparison
     if (account == null) return null;
 
     final idToken = (account.authentication).idToken;

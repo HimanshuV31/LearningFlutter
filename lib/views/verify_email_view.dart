@@ -124,4 +124,3 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
     );
   }
 }
-//

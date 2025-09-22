@@ -26,7 +26,6 @@ class FirebaseCloudStorage {
         titleFieldName: title,
         textFieldName: text,
       });
-
       final fetchedNote = await document.get();
       return CloudNote(
         documentId: fetchedNote.id,
@@ -41,24 +40,6 @@ class FirebaseCloudStorage {
       rethrow;
     }
   }
-
-  // Future<Iterable<CloudNote>> getNotes({required String ownerUserId}) async {
-  //   try {
-  //     return await notes
-  //         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
-  //         .get()
-  //         .then((value) {
-  //       return value.docs.map((doc) {
-  //         return CloudNote.fromSnapshot(doc);
-  //       });
-  //     });
-  //   } on FirebaseException catch (e) {
-  //     if (e.plugin == "cloud_firestore") {
-  //       throw CloudStorageException.fromCode(e.code);
-  //     }
-  //     rethrow;
-  //   }
-  // }
 
   Stream<Iterable<CloudNote>> allNotes({
     required String ownerUserId,
