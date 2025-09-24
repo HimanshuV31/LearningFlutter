@@ -257,14 +257,14 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
         child: Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: Colors.black.withAlpha(80),
+            color: Colors.black.withAlpha(100), // ✅ FIXED: Increased from 80 to 100
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withAlpha(90), width: 1.5),
+            border: Border.all(color: Colors.white.withAlpha(200), width: 1.5), // ✅ FIXED: Increased from 90 to 200
             boxShadow: UIConstants.strongShadow,
           ),
           child: CircleAvatar(
             radius: 16,
-            backgroundColor: Colors.cyan.withAlpha(20),
+            backgroundColor: Colors.cyan.withAlpha(40), // ✅ FIXED: Increased from 20 to 40
             child: Text(
               widget.userEmail.isNotEmpty
                   ? widget.userEmail[0].toUpperCase()
@@ -272,7 +272,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
-                color: Colors.white,
+                color: Colors.white, // ✅ FIXED: Full opacity white
                 shadows: UIConstants.textShadow,
               ),
             ),
