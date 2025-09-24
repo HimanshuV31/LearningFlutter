@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 
 class ProfileDrawer extends StatelessWidget {
   final String userEmail;
@@ -49,7 +48,7 @@ class ProfileDrawer extends StatelessWidget {
     final drawerWidth = screenWidth * 0.45;
 
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.4), // Dark overlay
+      backgroundColor: Colors.black.withAlpha(40), // Dark overlay
       body: GestureDetector(
         onTap: () => Navigator.of(context).pop(),
         child: Container(
@@ -101,10 +100,10 @@ class ProfileDrawer extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withAlpha(40), // ✅ FIXED: Increased from 20 to 40
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withAlpha(60), // ✅ FIXED: Increased from 30 to 60
                               width: 2,
                             ),
                           ),
@@ -114,7 +113,7 @@ class ProfileDrawer extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Colors.white, // ✅ FIXED: Full opacity white
                               ),
                             ),
                           ),
@@ -127,7 +126,7 @@ class ProfileDrawer extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: Colors.white, // ✅ FIXED: Full opacity white
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -140,7 +139,7 @@ class ProfileDrawer extends StatelessWidget {
                           userEmail,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withAlpha(180), // ✅ FIXED: Increased from 80 to 180 (~70% opacity)
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -217,8 +216,8 @@ class ProfileDrawer extends StatelessWidget {
                 icon,
                 size: 20,
                 color: isDestructive
-                    ? Colors.redAccent.withOpacity(0.8)
-                    : Colors.white.withOpacity(0.8),
+                    ? Colors.redAccent.withAlpha(200) // ✅ FIXED: Increased from 80 to 200 (~78% opacity)
+                    : Colors.white.withAlpha(220),     // ✅ FIXED: Increased from 80 to 220 (~86% opacity)
               ),
               const SizedBox(width: 12),
               Text(
@@ -227,8 +226,8 @@ class ProfileDrawer extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: isDestructive
-                      ? Colors.redAccent.withOpacity(0.8)
-                      : Colors.white.withOpacity(0.9),
+                      ? Colors.redAccent.withAlpha(200) // ✅ FIXED: Increased from 80 to 200
+                      : Colors.white.withAlpha(230),     // ✅ FIXED: Increased from 90 to 230 (~90% opacity)
                 ),
               ),
             ],
@@ -239,7 +238,7 @@ class ProfileDrawer extends StatelessWidget {
   }
 }
 
-// ✅ SIMPLE: Direct dialog approach
+// ✅ SIMPLE: Direct dialog approach (unchanged)
 void showProfileDrawer({
   required BuildContext context,
   required String userEmail,

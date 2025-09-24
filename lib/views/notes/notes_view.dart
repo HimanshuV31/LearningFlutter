@@ -10,7 +10,6 @@ import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_state.dart';
-// import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/services/notes_actions/handle_long_press_note.dart';
@@ -58,6 +57,7 @@ class _NotesViewState extends State<NotesView>{
     _searchBloc = SearchBloc();
     super.initState();
   }
+
   void _toggleView() {
     setState(() {
       _showListView = !_showListView;
@@ -105,63 +105,60 @@ class _NotesViewState extends State<NotesView>{
             Scaffold(
               backgroundColor: Colors.transparent,
               body: SafeArea(
-                child:
-                    StreamBuilder<Iterable<CloudNote>>(
-                      stream: _notesService.allNotes(ownerUserId: userId),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text("Error: ${snapshot.error}"),
-                          );
-                        }
-                        final allNotes = snapshot.data ?? <CloudNote>[];
-                        final hasNotes = allNotes.isNotEmpty;
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (hasNotes && _searchBloc.state is SearchInitial) {
-                            _searchBloc.add(SearchInitiated(allNotes));
-                            debugPrint("🔍 Post-frame: Initialized SearchBloc with ${allNotes.length} notes");
-                          }
-                        });
-                        return CustomScrollView(
-                          slivers: [
-                            // AppBar
-                            CustomSliverAppBar(
-                              title: "Infinity Notes",
-                              userEmail: userEmail,
-                              hasNotes: hasNotes,
-                              autoShowSearch: hasNotes,
-                              // menuItems: _buildMenuItems(),
-                              backgroundColor: Colors.black,
-                              foregroundColor: foregroundColor,
-                              onToggleView: _toggleView,
-                              isListView: _showListView,
-                              onLogout:() =>_handleMenuAction(MenuAction.logout),
-                              onSearchChanged: (query) =>
-                                  _searchBloc.add(SearchQueryChanged(query)),
-                            ), // CustomSliverAppBar
+                child: StreamBuilder<Iterable<CloudNote>>(
+                  stream: _notesService.allNotes(ownerUserId: userId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text("Error: ${snapshot.error}"),
+                      );
+                    }
+                    final allNotes = snapshot.data ?? <CloudNote>[];
+                    final hasNotes = allNotes.isNotEmpty;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (hasNotes && _searchBloc.state is SearchInitial) {
+                        _searchBloc.add(SearchInitiated(allNotes));
+                        debugPrint("🔍 Post-frame: Initialized SearchBloc with ${allNotes.length} notes");
+                      }
+                    });
+                    return CustomScrollView(
+                      slivers: [
+                        // AppBar
+                        CustomSliverAppBar(
+                          title: "Infinity Notes",
+                          userEmail: userEmail,
+                          hasNotes: hasNotes,
+                          autoShowSearch: hasNotes,
+                          backgroundColor: Colors.black,
+                          foregroundColor: foregroundColor,
+                          onToggleView: _toggleView,
+                          isListView: _showListView,
+                          onLogout: () => _handleMenuAction(MenuAction.logout),
+                          onSearchChanged: (query) =>
+                              _searchBloc.add(SearchQueryChanged(query)),
+                        ),
 
-                            //Not~s with Search Implementation
-                            BlocBuilder<SearchBloc, SearchState>(
-                              builder: (context, searchState) {
-                                return _buildNotesContent(
-                                  allNotes,
-                                  searchState,
-                                );
-                              },
-                            ), //BlocBuilder for Notes and Search
-                          ], // slivers
-                        ); //return statement (CustomScrollView)
-                      }, //builder
-                    ), //streamBuilder
-              ), //body:safeArea
+                        // ✅ FIXED: Notes with proper Sliver implementation
+                        BlocBuilder<SearchBloc, SearchState>(
+                          builder: (context, searchState) {
+                            return _buildNotesContent(
+                              allNotes,
+                              searchState,
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
               floatingActionButton: Container(
-                margin: EdgeInsets.only(bottom: 36,right: 10), // ✅ Add margin from bottom
+                margin: EdgeInsets.only(bottom: 36, right: 10),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: UIConstants.strongShadow,
@@ -178,16 +175,16 @@ class _NotesViewState extends State<NotesView>{
                     ),
                   ),
                   child: Icon(
-                      Icons.add,
-                      color: themeColor,
-                      size: 28,
-                      shadows: UIConstants.iconShadow,
+                    Icons.add,
+                    color: themeColor,
+                    size: 28,
+                    shadows: UIConstants.iconShadow,
                   ),
                 ),
               ),
-            ), //scaffold
-          ], //children
-        ), //child:stack
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -203,30 +200,13 @@ class _NotesViewState extends State<NotesView>{
         showCustomToast(context, "Logout Successful");
         break;
       case MenuAction.profile:
-        // TODO: Handle this case.
         throw UnimplementedError();
       case MenuAction.settings:
-        // TODO: Handle this case.
         throw UnimplementedError();
     }
   }
-  //
-  // List<PopupMenuEntry> _buildMenuItems() {
-  //   return [
-  //     PopupMenuItem<MenuAction>(
-  //       value: MenuAction.logout,
-  //       onTap: () => _handleMenuAction(MenuAction.logout),
-  //       child: Row(
-  //         children: [
-  //           Icon(Icons.logout, size: 20, color: Colors.white70),
-  //           SizedBox(width: 8),
-  //           Text("Logout", style: TextStyle(color: Colors.white)),
-  //         ],
-  //       ),
-  //     ),
-  //   ];
-  // }
 
+  // ✅ COMPLETELY REWRITTEN: Proper Sliver implementation
   Widget _buildNotesContent(
       Iterable<CloudNote> allNotes,
       SearchState searchState,
@@ -291,49 +271,27 @@ class _NotesViewState extends State<NotesView>{
       );
     }
 
-    // ✅ FIXED: Use AnimatedSwitcher instead of AnimatedBuilder in Sliver
-    return SliverToBoxAdapter(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 400),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.15, 0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              )),
-              child: child,
-            ),
-          );
-        },
-        child: _showListView
-            ? NotesListView(
-          key: const ValueKey('listView'), // ✅ Key for AnimatedSwitcher
-          notes: notesToShow,
-          onTapNote: (note) => openNote(note),
-          onLongPressNote: (note) => handleLongPressNote(
-            context: context,
-            note: note,
-            notesService: _notesService,
-          ),
-        )
-            : NotesTileView(
-          key: const ValueKey('tileView'), // ✅ Key for AnimatedSwitcher
-          notes: notesToShow,
-          onTapNote: (note) => openNote(note),
-          onLongPressNote: (note) => handleLongPressNote(
-            context: context,
-            note: note,
-            notesService: _notesService,
-          ),
+    // ✅ FIXED: Return proper Sliver widgets
+    if (_showListView) {
+      return SliverNotesListView(
+        notes: notesToShow,
+        onTapNote: (note) => openNote(note),
+        onLongPressNote: (note) => handleLongPressNote(
+          context: context,
+          note: note,
+          notesService: _notesService,
         ),
-      ),
-    );
+      );
+    } else {
+      return SliverNotesTileView(
+        notes: notesToShow,
+        onTapNote: (note) => openNote(note),
+        onLongPressNote: (note) => handleLongPressNote(
+          context: context,
+          note: note,
+          notesService: _notesService,
+        ),
+      );
+    }
   }
-
-
 }

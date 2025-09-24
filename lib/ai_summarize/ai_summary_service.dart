@@ -75,12 +75,15 @@ class AISummaryService {
     required String userId,
     List<String>? links,
   }) {
+    final now = DateTime.now();
     return CloudNote(
       documentId: 'temp-${DateTime.now().millisecondsSinceEpoch}',
       ownerUserId: userId,
       title: title.isNotEmpty ? title : 'Untitled Note',
       text: content,
       links: links ?? [],
+      createdAt: now, // ✅ ADD: Current timestamp
+      updatedAt: now, // ✅ ADD: Current timestamp
     );
   }
 }
