@@ -1,5 +1,3 @@
-
-
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 
 abstract class SearchEvent {
@@ -16,6 +14,7 @@ class SearchCleared extends SearchEvent {
 }
 
 class SearchInitiated extends SearchEvent {
-  final Iterable<CloudNote> notes;
-  const SearchInitiated(this.notes);
+  final Iterable<CloudNote> allNotes;
+  const SearchInitiated(this.allNotes);
+  List<Object> get props => [allNotes];
 }

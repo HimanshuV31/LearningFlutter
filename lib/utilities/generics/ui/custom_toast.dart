@@ -12,7 +12,7 @@ void showCustomToast(BuildContext context, String message) {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.8),
+            color: Colors.black.withAlpha(80),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(

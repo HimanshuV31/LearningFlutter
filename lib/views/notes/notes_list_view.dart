@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 // import '../../services/crud/notes_service.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
+import 'package:infinity_notes/utilities/generics/ui/linkify_text.dart';
 
 class NotesListView extends StatelessWidget {
   final Iterable<CloudNote> notes;
@@ -109,7 +110,7 @@ class NoteListTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
               ),
-              Text(
+              LinkifyText(
                 note.text,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -33,7 +34,7 @@ Future<UserCredential?> signInWithApple() async {
 
     return userCredential;
   } catch (e) {
-    print("🔥 Apple Sign-In failed: $e");
+    debugPrint("🔥 Apple Sign-In failed: $e");
     return null;
   }
 }

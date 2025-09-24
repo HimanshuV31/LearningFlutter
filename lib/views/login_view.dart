@@ -20,7 +20,6 @@ class _LoginViewState extends State<LoginView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final auth = AuthService.firebase();
-  CloseDialog? _closeDialogHandle;
 
   Future<void> login() async {
     final email = emailController.text.trim();

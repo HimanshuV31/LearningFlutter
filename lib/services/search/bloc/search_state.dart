@@ -5,7 +5,8 @@ abstract class SearchState {
 }
 
 class SearchInitial extends SearchState {
-  const SearchInitial();
+  final Iterable<CloudNote> notes;
+  const SearchInitial({this.notes = const <CloudNote>[]});
 }
 
 class SearchLoading extends SearchState {

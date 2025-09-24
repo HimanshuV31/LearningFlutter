@@ -21,6 +21,7 @@ import 'package:infinity_notes/utilities/generics/ui/background_image.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_sliver_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
+import 'package:infinity_notes/utilities/generics/ui/ui_constants.dart';
 import 'package:infinity_notes/views/notes/notes_list_view.dart';
 import 'package:infinity_notes/views/notes/notes_tile_view.dart';
 
@@ -31,7 +32,7 @@ class NotesView extends StatefulWidget {
   State<NotesView> createState() => _NotesViewState();
 }
 
-class _NotesViewState extends State<NotesView> {
+class _NotesViewState extends State<NotesView>{
   String get userEmail => AuthService.firebase().currentUser!.email;
   late final FirebaseCloudStorage _notesService;
   String get userId => AuthService.firebase().currentUser!.id;
@@ -57,10 +58,14 @@ class _NotesViewState extends State<NotesView> {
     _searchBloc = SearchBloc();
     super.initState();
   }
+  void _toggleView() {
+    setState(() {
+      _showListView = !_showListView;
+    });
+  }
 
   @override
   void dispose() {
-    // _notesService.close();
     _searchBloc.close();
     super.dispose();
   }
@@ -117,7 +122,12 @@ class _NotesViewState extends State<NotesView> {
                         }
                         final allNotes = snapshot.data ?? <CloudNote>[];
                         final hasNotes = allNotes.isNotEmpty;
-
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (hasNotes && _searchBloc.state is SearchInitial) {
+                            _searchBloc.add(SearchInitiated(allNotes));
+                            debugPrint("🔍 Post-frame: Initialized SearchBloc with ${allNotes.length} notes");
+                          }
+                        });
                         return CustomScrollView(
                           slivers: [
                             // AppBar
@@ -125,13 +135,13 @@ class _NotesViewState extends State<NotesView> {
                               title: "Infinity Notes",
                               userEmail: userEmail,
                               hasNotes: hasNotes,
-                              menuItems: _buildMenuItems(),
+                              autoShowSearch: hasNotes,
+                              // menuItems: _buildMenuItems(),
                               backgroundColor: Colors.black,
                               foregroundColor: foregroundColor,
+                              onToggleView: _toggleView,
                               isListView: _showListView,
-                              onToggleView: () => setState(
-                                () => _showListView = !_showListView,
-                              ),
+                              onLogout:() =>_handleMenuAction(MenuAction.logout),
                               onSearchChanged: (query) =>
                                   _searchBloc.add(SearchQueryChanged(query)),
                             ), // CustomSliverAppBar
@@ -150,7 +160,25 @@ class _NotesViewState extends State<NotesView> {
                       }, //builder
                     ), //streamBuilder
               ), //body:safeArea
-              floatingActionButton: _buildCustomFAB(),
+              floatingActionButton: Container(
+                margin: EdgeInsets.only(bottom: 36,right: 10), // ✅ Add margin from bottom
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: UIConstants.strongShadow,
+
+                ),
+                child: FloatingActionButton(
+                  onPressed: newNote,
+                  backgroundColor: themeColor,
+                  elevation: 0,
+                  child: Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 28,
+                      shadows: UIConstants.iconShadow,
+                  ),
+                ),
+              ),
             ), //scaffold
           ], //children
         ), //child:stack
@@ -168,51 +196,77 @@ class _NotesViewState extends State<NotesView> {
         if (!mounted) return;
         showCustomToast(context, "Logout Successful");
         break;
+      case MenuAction.profile:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case MenuAction.settings:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
-
-  List<PopupMenuEntry> _buildMenuItems() {
-    return [
-      PopupMenuItem<MenuAction>(
-        value: MenuAction.logout,
-        onTap: () => _handleMenuAction(MenuAction.logout),
-        child: Row(
-          children: [
-            Icon(Icons.logout, size: 20, color: Colors.white70),
-            SizedBox(width: 8),
-            Text("Logout", style: TextStyle(color: Colors.white)),
-          ],
-        ),
-      ),
-    ];
-  }
+  //
+  // List<PopupMenuEntry> _buildMenuItems() {
+  //   return [
+  //     PopupMenuItem<MenuAction>(
+  //       value: MenuAction.logout,
+  //       onTap: () => _handleMenuAction(MenuAction.logout),
+  //       child: Row(
+  //         children: [
+  //           Icon(Icons.logout, size: 20, color: Colors.white70),
+  //           SizedBox(width: 8),
+  //           Text("Logout", style: TextStyle(color: Colors.white)),
+  //         ],
+  //       ),
+  //     ),
+  //   ];
+  // }
 
   Widget _buildNotesContent(
-    Iterable<CloudNote> allNotes,
-    SearchState searchState,
-  ) {
-    Iterable<CloudNote> notesToShow = allNotes;
+      Iterable<CloudNote> allNotes,
+      SearchState searchState,
+      ) {
+    debugPrint("🔍 _buildNotesContent: searchState = $searchState");
 
-    // Apply Search Filter
-    if (searchState is SearchResults) {
-      notesToShow = searchState.results;
-    } else if (searchState is SearchEmpty) {
-      return SliverFillRemaining(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.search_off, size: 64, color: Colors.white54),
-              const SizedBox(height: 16),
-              Text(
-                "No results found for: ${searchState.query}",
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-            ],
+    Iterable<CloudNote> notesToShow;
+
+    switch (searchState.runtimeType) {
+      case SearchResults:
+        final state = searchState as SearchResults;
+        notesToShow = state.results;
+        debugPrint("🔍 Showing ${notesToShow.length} search results for '${state.query}'");
+        break;
+
+      case SearchEmpty:
+        final state = searchState as SearchEmpty;
+        debugPrint("🔍 No results found for '${state.query}'");
+        return SliverFillRemaining(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.search_off, size: 64, color: Colors.white54),
+                const SizedBox(height: 16),
+                Text(
+                  "No results found for: ${state.query}",
+                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        );
+
+      case SearchInitial:
+        final state = searchState as SearchInitial;
+        notesToShow = state.notes.isNotEmpty ? state.notes : allNotes;
+        debugPrint("🔍 Showing all ${notesToShow.length} notes (initial state)");
+        break;
+
+      default:
+        notesToShow = allNotes;
+        debugPrint("🔍 Showing all ${notesToShow.length} notes (default)");
+        break;
     }
+
     if (notesToShow.isEmpty) {
       return SliverFillRemaining(
         child: Center(
@@ -230,40 +284,50 @@ class _NotesViewState extends State<NotesView> {
         ),
       );
     }
-    //Return appropriate sliver
-    if (_showListView) {
-      return SliverToBoxAdapter(
-        child: NotesListView(
-            notes: notesToShow,
-            onTapNote: (note) => openNote(note),
-            onLongPressNote:(note) => handleLongPressNote(
-              context: context,
-              note: note,
-              notesService: _notesService,
-            ),
-        ),
-      );
-    } else {
-      return SliverToBoxAdapter(
-        child: NotesTileView(
-            notes: notesToShow,
-            onTapNote: (note) => openNote(note),
-            onLongPressNote: (note) => handleLongPressNote(
-              context: context,
-              note: note,
-              notesService: _notesService,
-            ),
-        ),
-      );
-    }
-  }
 
-  Widget _buildCustomFAB() {
-    return FloatingActionButton(
-      onPressed: newNote,
-      backgroundColor: themeColor,
-      foregroundColor: Colors.black,
-      child: Icon(Icons.add, color: Colors.white),
+    // ✅ FIXED: Use AnimatedSwitcher instead of AnimatedBuilder in Sliver
+    return SliverToBoxAdapter(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.15, 0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            ),
+          );
+        },
+        child: _showListView
+            ? NotesListView(
+          key: const ValueKey('listView'), // ✅ Key for AnimatedSwitcher
+          notes: notesToShow,
+          onTapNote: (note) => openNote(note),
+          onLongPressNote: (note) => handleLongPressNote(
+            context: context,
+            note: note,
+            notesService: _notesService,
+          ),
+        )
+            : NotesTileView(
+          key: const ValueKey('tileView'), // ✅ Key for AnimatedSwitcher
+          notes: notesToShow,
+          onTapNote: (note) => openNote(note),
+          onLongPressNote: (note) => handleLongPressNote(
+            context: context,
+            note: note,
+            notesService: _notesService,
+          ),
+        ),
+      ),
     );
   }
+
+
 }

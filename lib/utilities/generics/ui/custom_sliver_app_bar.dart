@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:infinity_notes/enums/menu_actions.dart';
+import 'package:infinity_notes/utilities/generics/animation_controller.dart';
+import 'package:infinity_notes/utilities/generics/animation_storage.dart';
+import 'package:infinity_notes/utilities/generics/ui/profile_drawer.dart';
+import 'package:infinity_notes/utilities/generics/ui/ui_constants.dart';
+
 import 'search_bar.dart' as custom;
 
-
-
-enum AppBarMode{ normal, searching }
+enum AppBarMode { normal, searching }
 
 class CustomSliverAppBar extends StatefulWidget {
   final String? title;
@@ -19,14 +23,17 @@ class CustomSliverAppBar extends StatefulWidget {
   final double elevation;
   final bool isSearchMode;
   final double? titleSpacing;
-
   final String userEmail;
   final bool hasNotes;
-  final List<PopupMenuEntry> menuItems;
+  // final List<PopupMenuEntry> menuItems;
   final Function(String)? onSearchChanged;
   final VoidCallback? onToggleView;
   final bool isListView;
-
+  final bool autoShowSearch;
+  final VoidCallback? onLogout;
+  final VoidCallback? onProfile;
+  final VoidCallback? onSettings
+  ;
   const CustomSliverAppBar({
     super.key,
     this.title,
@@ -42,86 +49,100 @@ class CustomSliverAppBar extends StatefulWidget {
     this.elevation = 0,
     this.isSearchMode = false,
     this.titleSpacing,
-
     required this.userEmail,
     required this.hasNotes,
-    required this.menuItems,
+    // required this.menuItems,
     this.onSearchChanged,
     this.onToggleView,
     required this.isListView,
+    this.autoShowSearch = false,
+    this.onLogout,
+    this.onProfile,
+    this.onSettings,
   });
 
   @override
   State<CustomSliverAppBar> createState() => _CustomSliverAppBarState();
 }
-
-
-class _CustomSliverAppBarState extends State<CustomSliverAppBar> with TickerProviderStateMixin {
-  AppBarMode _currentMode = AppBarMode.normal;
-  late AnimationController _modeController;
+class _CustomSliverAppBarState extends State<CustomSliverAppBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _fadeController;
   late Animation<double> _titleOpacity;
   late Animation<double> _searchOpacity;
-  late Animation<Offset> _titleSlide;
-  late Animation<Offset> _searchSlide;
+
+  bool _showTitle = false;
+  bool _isAnimating = false;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    _setupModeAnimations();
+    _setupFadeAnimations();
+    _checkAndPlayAnimation();
+  }
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
   }
 
-  void _setupModeAnimations(){
-    _modeController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+  void _setupFadeAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800), // ✅ Shorter for cleaner fade
       vsync: this,
     );
 
+    // ✅ CLEAN: Simple fade out for title
     _titleOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
-          parent: _modeController,
-          curve: const Interval(0.0, 0.5, curve: Curves.easeInOut),
-      ));
+        parent: _fadeController,
+        curve: Curves.easeOut,
+      ),
+    );
 
-    _titleSlide = Tween<Offset>(
-      begin: const Offset(0.0,0.0),
-      end: const Offset(0.0, -0.5),
-    ).animate(CurvedAnimation(
-        parent: _modeController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeInOut),
-    ));
-
+    // ✅ CLEAN: Simple fade in for search
     _searchOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _modeController,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
-          ));
-
-    _searchSlide = Tween<Offset>(
-      begin: const Offset(0.0, -0.5),
-      end: const Offset(0.0, 0.0),
-    ).animate(CurvedAnimation(
-      parent: _modeController,
-      curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
-    ));
+        parent: _fadeController,
+        curve: Curves.easeIn,
+      ),
+    );
   }
 
-  void _toggleSearchMode(){
-    setState(() {
-      if (_currentMode == AppBarMode.normal) {
-        _modeController.forward();
-        _currentMode = AppBarMode.searching;
-      } else {
-        _modeController.reverse();
-        _currentMode = AppBarMode.normal;
-      }
-    });
+  void _checkAndPlayAnimation() {
+    // ✅ SIMPLE: Check the global flag
+    if (GlobalAnimationController.shouldShowTitleAnimation() && mounted) {
+      debugPrint("🎯 ✅ Starting title animation...");
+
+      setState(() {
+        _showTitle = true;
+        _isAnimating = true;
+      });
+
+      // ✅ CONSUME: Mark animation as played to prevent repeat
+      GlobalAnimationController.consumeTitleAnimation();
+
+      Future.delayed(Duration(milliseconds: 1500), () {
+        if (mounted) {
+          _fadeController.forward().then((_) {
+            if (mounted) {
+              setState(() {
+                _showTitle = false;
+                _isAnimating = false;
+              });
+              debugPrint("🎯 ✅ Animation complete!");
+            }
+          });
+        }
+      });
+    } else {
+      debugPrint("🎯 ❌ No animation - showing search directly");
+      setState(() {
+        _showTitle = false;
+        _isAnimating = false;
+      });
+    }
   }
 
-  @override
-  void dispose(){
-    _modeController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,133 +150,134 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> with TickerProv
       pinned: widget.pinned,
       floating: widget.floating,
       expandedHeight: widget.expandedHeight,
-      backgroundColor: widget.themeColor ?? widget.backgroundColor,
+      backgroundColor: Colors.transparent,
       foregroundColor: widget.foregroundColor,
       elevation: widget.elevation,
       leading: widget.leading,
+      titleSpacing: 8,
 
-      titleSpacing: _currentMode == AppBarMode.searching
-          ? (widget.titleSpacing ?? 16)
-          : (widget.titleSpacing ?? NavigationToolbar.kMiddleSpacing),
-
-      // Dynamic title using Existing Structure
-      title: AnimatedBuilder(
-        animation: _modeController,
-        builder: (context, child) {
-          return SizedBox(
-            height: kToolbarHeight,
-            child: Stack(
+      title: SizedBox(
+        height: kToolbarHeight - 4,
+        child: _isAnimating
+            ? AnimatedBuilder(
+          animation: _fadeController,
+          builder: (context, child) {
+            return Stack(
               children: [
-                // Normal Mode - Use existing title
-                _buildNormalMode(),
-
-                // Search Mode - Full Search Bar
-                _buildSearchMode(),
-              ],
-              ),
-          );
-        },
-      ),
-      actions: widget.actions ?? [_buildProfileMenu()],
-
-
-      flexibleSpace: widget.flexibleSpace ??
-          (widget.themeColor != null
-              ? null
-              : LayoutBuilder(
-            builder: (context, constraints) {
-              bool isDesktop = constraints.maxWidth > 600;
-              return Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      isDesktop
-                          ? "assets/images/Web_AppBar_Background.png"
-                          : "assets/images/Phone_AppBar_Background.png",
-                    ),
-                    fit: BoxFit.cover,
-                    opacity: (_currentMode == AppBarMode.searching || widget.isSearchMode) ? 0.8 : 1.0,
-                  ),
+                // ✅ CLEAN: Search fades in (no sliding)
+                Opacity(
+                  opacity: _searchOpacity.value,
+                  child: _buildSearchMode(),
                 ),
-              );
-            },
-          ) as Widget?),  // Added explicit cast
 
+                // ✅ CLEAN: Title fades out (no sliding)
+                Opacity(
+                  opacity: _titleOpacity.value,
+                  child: _buildNormalMode(),
+                ),
+              ],
+            );
+          },
+        )
+            : _showTitle
+            ? _buildNormalMode()
+            : _buildSearchMode(),
+      ),
+
+      actions: widget.actions ?? [_buildProfileMenu()],
+      flexibleSpace: null,
     );
   }
 
-  Widget _buildNormalMode(){
-    return SlideTransition(
-      position: _titleSlide,
-      child: FadeTransition(
-        opacity: _titleOpacity,
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                widget.title ?? "Notes",  // Simple string handling
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  color: widget.foregroundColor,
-                ),
-              ),
-            ),
-              // Search Icon - if it has notes
-              if (widget.hasNotes)
-                IconButton(
-                  icon: Icon(
-                    Icons.search,
-                    size: 22,
-                    color: widget.foregroundColor.withAlpha(90),
-                  ),
-                  onPressed: _toggleSearchMode,
-                  tooltip: "Search Notes",
-                  ),
-                          ], // Children
-        ), //Row
-      ), // FadeTransition
-    ); //return statement
-  } // Widget _buildNormalMode
+  // ✅ CLEAN: No SlideTransition wrappers, just containers
+  Widget _buildNormalMode() {
+    return Container(
+      height: kToolbarHeight - 4,
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(100),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withAlpha(40), width: 1.2),
+        boxShadow: UIConstants.containerShadow,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        widget.title ?? "Infinity Notes",
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: 0.5,
+          shadows: UIConstants.textShadow,
+        ),
+      ),
+    );
+  }
 
-Widget _buildSearchMode(){
-    return SlideTransition(
-      position: _searchSlide,
-      child: FadeTransition(
-        opacity: _searchOpacity,
-        child: custom.SearchBar(
-          isExpanded: _currentMode == AppBarMode.searching,
-          onChanged: widget.onSearchChanged,
-          onToggleView: widget.onToggleView,
-          isListView: widget.isListView,
-          onClose: _toggleSearchMode,
-        ), // Child (custom.SearchBar)
-      ),// Child (FadeTransition)
-    ); //return statement
-    } // Widget _buildSearchMode
+  Widget _buildSearchMode() {
+    return Container(
+      height: kToolbarHeight - 4,
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: custom.SearchBar(
+        isExpanded: true,
+        onChanged: widget.onSearchChanged,
+        onToggleView: widget.onToggleView,
+        isListView: widget.isListView,
+        onClose: null,
+      ),
+    );
+  }
 
-Widget _buildProfileMenu(){
+  Widget _buildProfileMenu() {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: PopupMenuButton(
-        itemBuilder: (context) => widget.menuItems,
-        offset: const Offset(0,50),
-        child: CircleAvatar(
-          radius: 16,
-          backgroundColor: Colors.white24,
-          child: Text(
-            widget.userEmail.isNotEmpty
-                ? widget.userEmail[0].toUpperCase()
-                : "U",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: widget.foregroundColor,
+      child: GestureDetector(
+        onTap: () {
+          showProfileDrawer(
+            context: context,
+            userEmail: widget.userEmail,
+            onLogout: () {
+              if (widget.onLogout != null) {
+                widget.onLogout!();
+              } else {
+                debugPrint('🚪 No logout handler provided');
+              }
+            },
+            onProfile: () {
+              debugPrint('👤 Profile feature coming soon!');
+            },
+            onSettings: () {
+              debugPrint('⚙️ Settings feature coming soon!');
+            },
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: Colors.black.withAlpha(80),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withAlpha(90), width: 1.5),
+            boxShadow: UIConstants.strongShadow,
+          ),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: Colors.cyan.withAlpha(20),
+            child: Text(
+              widget.userEmail.isNotEmpty
+                  ? widget.userEmail[0].toUpperCase()
+                  : "U",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                shadows: UIConstants.textShadow,
+              ),
             ),
-         ), // Child (Text0
+          ),
         ),
-      ), // child (PopUpMenuButton)
-    ); //return statement
-}// Widget _buildProfileMenu
+      ),
+    );
+  }
 
-} // State Class
+}
+

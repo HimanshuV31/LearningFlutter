@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinity_notes/services/search/bloc/search_bloc.dart';
 import 'package:infinity_notes/services/search/bloc/search_event.dart';
+import 'package:infinity_notes/utilities/generics/ui/ui_constants.dart';
 
 class SearchBar extends StatefulWidget {
   final bool isExpanded;
@@ -9,7 +12,6 @@ class SearchBar extends StatefulWidget {
   final VoidCallback? onToggleView;
   final bool isListView;
   final VoidCallback? onClose;
-
   const SearchBar({
     super.key,
     required this.isExpanded,
@@ -25,53 +27,20 @@ class SearchBar extends StatefulWidget {
 
 class _SearchBarState extends State<SearchBar> with TickerProviderStateMixin {
   final _controller = TextEditingController();
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-
+  Timer? _debounceTimer;
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
-
-    //Title Animation Setup
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation = Tween<double>(begin: -20.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-
-    //Start Animation if Expanded
-    if (widget.isExpanded) {
-      _animationController.forward();
-    }
   }
 
   void _onTextChanged() {
-    context.read<SearchBloc>().add(SearchQueryChanged(_controller.text));
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      context.read<SearchBloc>().add(SearchQueryChanged(_controller.text));
+    });
     if (widget.onChanged != null) {
       widget.onChanged!(_controller.text);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant SearchBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isExpanded != widget.isExpanded) {
-      if (widget.isExpanded) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-        _controller.clear();
-        context.read<SearchBloc>().add(const SearchCleared());
-      }
     }
   }
 
@@ -79,75 +48,71 @@ class _SearchBarState extends State<SearchBar> with TickerProviderStateMixin {
   void dispose() {
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
-    _animationController.dispose();
     super.dispose();
   }
 
+  // In search_bar.dart, simplify the build method:
   @override
   Widget build(BuildContext context) {
     if (!widget.isExpanded) {
       return const SizedBox.shrink();
     }
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: Transform.translate(
-            offset: Offset(0.0, _slideAnimation.value),
-            child: Container(
-              height: 48,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(15),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.white.withAlpha(20), width: 1),
-              ),
-              child: Row(
-                children: [
-                  //Search Icon (Leading)
-                  Padding(
-                    padding: EdgeInsets.only(left: 10, right: 12),
-                    child: Icon(
-                      Icons.search,
-                      color: Colors.white.withAlpha(80),
-                      size: 22,
-                    ),
-                  ),
-
-                  //Search TextField
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      autofocus: widget.isExpanded,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: "Search Notes",
-                        hintStyle: TextStyle(
-                          color: Colors.white.withAlpha(70),
-                          fontSize: 16,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-
-                  //Action Buttons (Google Keep Style - overlayed on Search Bar)
-                  _buildActionIcons(),
-                ],
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(40),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withAlpha(60), width: 1.5),
+        boxShadow: UIConstants.containerShadow,
+      ),
+      child: Row(
+        children: [
+          // Search Icon
+          Padding(
+            padding: EdgeInsets.only(left: 16, right: 12),
+            child: Icon(
+              Icons.search,
+              color: Colors.white,
+              size: 22,
+              shadows: UIConstants.iconShadow,
             ),
           ),
-        );
-      },
+
+          // TextField
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              autofocus: false,
+              textAlignVertical: TextAlignVertical.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                height: 1.0,
+                shadows: UIConstants.textShadow,
+              ),
+              decoration: InputDecoration(
+                hintText: "Search Notes",
+                hintStyle: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  height: 1.0,
+                  shadows: UIConstants.textShadow,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 0),
+                alignLabelWithHint: true,
+              ),
+              onChanged: (text) => _onTextChanged(),
+            ),
+          ),
+          _buildActionIcons(),
+        ],
+      ),
     );
   }
+
 
   //Build overlayed action icons
   Widget _buildActionIcons() {
@@ -157,7 +122,12 @@ class _SearchBarState extends State<SearchBar> with TickerProviderStateMixin {
         //Clear Search (only when text exists)
         if (_controller.text.isNotEmpty)
           IconButton(
-            icon: const Icon(Icons.clear, size: 20, color: Colors.white70),
+            icon: const Icon(
+              Icons.clear,
+              size: 20,
+              color: Colors.white,
+              shadows: UIConstants.iconShadow,
+            ),
             onPressed: () {
               _controller.clear();
               context.read<SearchBloc>().add(const SearchCleared());
@@ -172,7 +142,8 @@ class _SearchBarState extends State<SearchBar> with TickerProviderStateMixin {
             icon: Icon(
               widget.isListView ? Icons.grid_view : Icons.view_agenda,
               size: 20,
-              color: Colors.white70,
+              color: Colors.white,
+              shadows: UIConstants.iconShadow,
             ),
             onPressed: widget.onToggleView,
             padding: const EdgeInsets.all(8),

@@ -5,7 +5,6 @@ class SearchService {
       Iterable<CloudNote> notes,
       String query,
       ){
-    if (query.isEmpty) return notes;
 
     final searchTerm = query.toLowerCase();
     return notes.where((note) =>

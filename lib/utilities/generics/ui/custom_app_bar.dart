@@ -8,8 +8,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color foregroundColor;
   final Color? themeColor;
   final IconButton? leading;
-
-
   const CustomAppBar({
     super.key,
     required this.title,
@@ -18,12 +16,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.foregroundColor,
     required this.backgroundColor,
     this.actions,
-    this.leading=null,});
+    this.leading=null,
+  });
 
   @override
   Widget build(BuildContext context) {
     final double fontSize = 23;
     final double strokeWidth = 2;
+    final double letterSpacing =1.5;
     return AppBar(
       title:  titleWidget ?? (title != null ? Stack(
         children: [
@@ -32,6 +32,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
+              letterSpacing: letterSpacing,
               foreground: Paint()
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = strokeWidth
@@ -44,6 +45,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               fontSize: 23,
               fontWeight: FontWeight.bold,
               color: foregroundColor,
+              letterSpacing: letterSpacing,
             ),
           ),
         ],
