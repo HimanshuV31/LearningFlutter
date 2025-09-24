@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:infinity_notes/enums/menu_actions.dart';
-import 'package:infinity_notes/utilities/generics/animation_controller.dart';
-import 'package:infinity_notes/utilities/generics/animation_storage.dart';
+import 'package:infinity_notes/utilities/generics/ui/animation/animation_controller.dart';
+import 'package:infinity_notes/utilities/generics/ui/animation/animation_storage.dart';
 import 'package:infinity_notes/utilities/generics/ui/profile_drawer.dart';
 import 'package:infinity_notes/utilities/generics/ui/ui_constants.dart';
 

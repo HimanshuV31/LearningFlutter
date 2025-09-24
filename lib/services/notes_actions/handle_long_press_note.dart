@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/services/notes_actions/share_note.dart';
+import 'package:infinity_notes/utilities/ai/ai_helper.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
 
@@ -34,6 +35,35 @@ Future<String?> showNoteActionsDialog({
                   ),
                 ),
               ),
+              const Divider(height: 20, thickness: 1),
+
+              InkWell(
+                onTap: () => Navigator.pop(context, 'ai_summary'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        color: AIHelper.canSummarizeContent(note.text)
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'AI Summary',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AIHelper.canSummarizeContent(note.text)
+                              ? null
+                              : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
               const Divider(height: 20, thickness: 1),
               InkWell(
                 onTap: () => Navigator.pop(context, 'share'),
@@ -87,6 +117,20 @@ Future<void> handleLongPressNote({
   if (action == null) return; // user dismissed dialog
 
   switch (action) {
+    case 'ai_summary':
+      if (AIHelper.canSummarizeContent(note.text)) {
+        AIHelper.handleSummarizeAction(
+          context: context,
+          content: note.text,
+          title: note.title,
+          onComplete: () {
+            showCustomToast(context, "AI Summary created successfully!");
+          },
+        );
+      } else {
+        showCustomToast(context, "Note content is empty or too short to summarize");
+      }
+      break;
     case 'share':
       shareNote(note: note, context: context);
       break;

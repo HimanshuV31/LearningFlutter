@@ -4,8 +4,7 @@ import 'package:infinity_notes/services/auth/auth_exception.dart';
 import 'package:infinity_notes/services/auth/auth_provider.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_state.dart';
-import 'package:infinity_notes/utilities/generics/animation_controller.dart';
-
+import 'package:infinity_notes/utilities/generics/ui/animation/animation_controller.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(AuthProvider provider) : super(const AuthStateUninitialized(isLoading: true)) {
     //Initialize

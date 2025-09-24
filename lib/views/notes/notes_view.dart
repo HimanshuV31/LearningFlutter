@@ -146,7 +146,7 @@ class _NotesViewState extends State<NotesView>{
                                   _searchBloc.add(SearchQueryChanged(query)),
                             ), // CustomSliverAppBar
 
-                            //Notes with Search Implementation
+                            //Not~s with Search Implementation
                             BlocBuilder<SearchBloc, SearchState>(
                               builder: (context, searchState) {
                                 return _buildNotesContent(
@@ -165,15 +165,21 @@ class _NotesViewState extends State<NotesView>{
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: UIConstants.strongShadow,
-
                 ),
                 child: FloatingActionButton(
                   onPressed: newNote,
-                  backgroundColor: themeColor,
+                  backgroundColor: Colors.white,
                   elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    side: BorderSide(
+                      color: themeColor,
+                      width: 2,
+                    ),
+                  ),
                   child: Icon(
                       Icons.add,
-                      color: Colors.white,
+                      color: themeColor,
                       size: 28,
                       shadows: UIConstants.iconShadow,
                   ),
