@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinity_notes/ai_summarize/ai_service.dart';
+import 'package:infinity_notes/constants/routes.dart';
 import 'package:infinity_notes/helpers/loading/loading_screen.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_bloc.dart';
 import 'package:infinity_notes/services/auth/bloc/auth_event.dart';
@@ -12,8 +13,8 @@ import 'package:infinity_notes/views/notes/create_update_note_view.dart';
 import 'package:infinity_notes/views/notes/notes_view.dart';
 import 'package:infinity_notes/views/register_view.dart';
 import 'package:infinity_notes/views/verify_email_view.dart';
-import 'constants/routes.dart';
 import 'package:infinity_notes/constants/api_keys.dart';
+
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
