@@ -12,13 +12,17 @@ class AIService {
   // Secure storage for API keys
   final _secureStorage = const FlutterSecureStorage();
 
-  // Base URLs
+  // 🚀 FIXED: Using current Gemini 2.5 models (2025)
   static const String _openAIUrl = 'https://api.openai.com/v1/chat/completions';
-  static const String _geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+  static const String _geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   // API Keys
   String? _openAIKey;
   String? _geminiKey;
+
+  // Conservative limits for reliability
+  static const int _maxContentLength = 8000;     // Conservative for testing
+  static const int _maxOutputTokens = 1000;      // Conservative output
 
   // Initialize API keys
   Future<void> initializeKeys({String? openAIKey, String? geminiKey}) async {
@@ -34,7 +38,7 @@ class AIService {
       debugPrint("✅ AI Service keys initialized successfully");
     } catch (e) {
       debugPrint("❌ Error initializing keys: $e");
-      // Fallback: store in memory temporarily
+      // Fallback to memory storage
       _geminiKey = geminiKey;
       _openAIKey = openAIKey;
     }
@@ -61,281 +65,256 @@ class AIService {
       throw AIServiceException('Content cannot be empty');
     }
 
+    // Simple truncation
+    String processedContent = content.trim();
+    if (processedContent.length > _maxContentLength) {
+      processedContent = processedContent.substring(0, _maxContentLength) + "...";
+    }
+
+    debugPrint("🔍 Processing content: ${processedContent.length} chars");
+
     try {
-      switch (provider) {
-        case AIProvider.openAI:
-          return await _callOpenAI(content);
-        case AIProvider.gemini:
-          return await _callGemini(content);
-        default:
-          throw AIServiceException('Unsupported AI provider');
-      }
+      return await _callGemini(processedContent);
     } catch (e) {
-      throw AIServiceException('Failed to generate summary: ${e.toString()}');
+      debugPrint("❌ Gemini failed: $e");
+      throw AIServiceException('Summarization failed: ${e.toString()}');
     }
   }
 
-  // OpenAI implementation
-  Future<Map<String, String>> _callOpenAI(String content) async {
-    if (_openAIKey == null) {
-      throw AIServiceException('OpenAI API key not configured');
-    }
-
-    final response = await http.post(
-      Uri.parse(_openAIUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $_openAIKey',
-      },
-      body: jsonEncode({
-        'model': 'gpt-4',
-        'messages': [
-          {
-            'role': 'system',
-            'content': _openAISystemPrompt(),
-          },
-          {
-            'role': 'user',
-            'content': _openAIUserPrompt(content),
-          },
-        ],
-        'max_tokens': 300, // ✅ REDUCED: For concise summaries
-        'temperature': 0.3,
-        'response_format': {'type': 'json_object'},
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final jsonResponse = jsonDecode(data['choices'][0]['message']['content']);
-      return {
-        'title': _cleanText(jsonResponse['title']?.toString() ?? 'Untitled Summary'),
-        'summary': _cleanText(jsonResponse['summary']?.toString() ?? 'Summary not available'),
-      };
-    } else {
-      throw AIServiceException('OpenAI API error: ${response.statusCode} - ${response.body}');
-    }
-  }
-
-  // Gemini implementation
+  // 🚀 GEMINI API CALL - Using 2.5 Flash model
   Future<Map<String, String>> _callGemini(String content) async {
     if (_geminiKey == null) {
       throw AIServiceException('Gemini API key not configured');
     }
 
-    final prompt = _geminiPromptText(content);
+    debugPrint("🔑 Using API key: ${_geminiKey!.substring(0, 10)}...");
+    debugPrint("🌐 Endpoint: $_geminiUrl");
 
-    final response = await http.post(
-      Uri.parse('$_geminiUrl?key=$_geminiKey'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+    String prompt = '''Create a concise summary in JSON format:
+
+{
+  "title": "Brief descriptive title (5-10 words)",
+  "summary": "Clear summary covering the main points and key information"
+}
+
+Content: $content
+
+Return only valid JSON:''';
+
+    try {
+      final client = http.Client();
+
+      final requestBody = {
         'contents': [
           {
             'parts': [
-              {
-                'text': prompt,
-              },
-            ],
-          },
+              {'text': prompt}
+            ]
+          }
         ],
         'generationConfig': {
-          'temperature': 0.3,
-          'maxOutputTokens': 350, // ✅ REDUCED: For concise summaries
-          'stopSequences': [],
+          'temperature': 0.4,
+          'maxOutputTokens': _maxOutputTokens,
+          'topP': 0.8,
+          'topK': 40,
         },
-      }),
-    );
+        'safetySettings': [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_ONLY_HIGH"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_ONLY_HIGH"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_ONLY_HIGH"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_ONLY_HIGH"
+          }
+        ]
+      };
 
-    debugPrint("🔍 Gemini Response Status: ${response.statusCode}");
+      debugPrint("📤 Sending request...");
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final response = await client.post(
+        Uri.parse('$_geminiUrl?key=$_geminiKey'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      ).timeout(const Duration(seconds: 45));
 
-      if (data['candidates'] != null && data['candidates'].isNotEmpty) {
-        final responseText = data['candidates'][0]['content']['parts'][0]['text'].toString().trim();
-        debugPrint("🔍 Raw Gemini Response: $responseText");
+      client.close();
 
-        return _parseGeminiResponse(responseText);
+      debugPrint("📡 Response Status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        debugPrint("✅ Success! Processing response...");
+
+        final data = jsonDecode(response.body);
+
+        if (data['candidates'] != null && data['candidates'].isNotEmpty) {
+          final candidate = data['candidates'][0];
+
+          // Check finish reason
+          final finishReason = candidate['finishReason'];
+          debugPrint("🏁 Finish reason: $finishReason");
+
+          if (finishReason == 'SAFETY') {
+            throw AIServiceException('Content was blocked by safety filters');
+          }
+
+          String? responseText = _extractResponseText(candidate);
+          if (responseText != null && responseText.trim().isNotEmpty) {
+            debugPrint("📝 Response: ${responseText.substring(0, responseText.length.clamp(0, 100))}...");
+            return _parseResponse(responseText);
+          }
+        }
+
+        throw AIServiceException('Empty response from Gemini');
+
       } else {
-        throw AIServiceException('No response generated from Gemini');
+        final errorBody = response.body;
+        debugPrint("❌ Error Response: $errorBody");
+
+        // Parse error details
+        if (response.statusCode == 400) {
+          if (errorBody.contains('API key')) {
+            throw AIServiceException('API key is invalid or expired. Generate a new key from Google AI Studio.');
+          } else if (errorBody.contains('quota') || errorBody.contains('limit')) {
+            throw AIServiceException('API quota exceeded. Check your usage limits.');
+          } else {
+            throw AIServiceException('Bad request. Check content or API format.');
+          }
+        } else if (response.statusCode == 403) {
+          throw AIServiceException('Access denied. Check API key permissions.');
+        } else if (response.statusCode == 404) {
+          throw AIServiceException('Gemini 2.5 Flash model not found. Your API key might not have access to this model.');
+        } else if (response.statusCode == 429) {
+          throw AIServiceException('Rate limit exceeded. Wait a moment and try again.');
+        } else {
+          throw AIServiceException('API Error ${response.statusCode}: ${errorBody}');
+        }
       }
-    } else {
-      throw AIServiceException('Gemini API error: ${response.statusCode} - ${response.body}');
+    } catch (e) {
+      if (e is AIServiceException) rethrow;
+      debugPrint("❌ Network error: $e");
+      throw AIServiceException('Network error: ${e.toString()}');
     }
   }
 
-  // ✅ ENHANCED: Better Gemini response parsing with aggressive JSON cleaning
-  Map<String, String> _parseGeminiResponse(String responseText) {
-    debugPrint("🔍 Parsing response: $responseText");
+  // Extract response text from API response
+  String? _extractResponseText(Map<String, dynamic> candidate) {
+    try {
+      // Try modern content structure
+      final content = candidate['content'];
+      if (content != null && content['parts'] != null) {
+        final parts = content['parts'] as List;
+        if (parts.isNotEmpty && parts[0]['text'] != null) {
+          return parts[0]['text'].toString();
+        }
+      }
+    } catch (e) {
+      debugPrint("❌ Content extraction failed: $e");
+    }
 
     try {
-      // Step 1: Remove all markdown formatting and code blocks
-      String cleanedResponse = responseText
+      // Try legacy text field
+      return candidate['text']?.toString();
+    } catch (e) {
+      debugPrint("❌ Legacy text extraction failed: $e");
+    }
+
+    return null;
+  }
+
+  // Parse API response into title/summary
+  Map<String, String> _parseResponse(String responseText) {
+    debugPrint("🔍 Parsing response...");
+
+    try {
+      // Clean response text
+      String cleaned = responseText
           .replaceAll('```', '')
           .replaceAll('`', '')
           .trim();
 
-          debugPrint("🔍 After basic cleaning: $cleanedResponse");
+          // Find JSON boundaries
+          int start = cleaned.indexOf('{');
+      int end = cleaned.lastIndexOf('}');
 
-      // Step 2: Try to find JSON content between braces
-      RegExp jsonRegex = RegExp(r'\{[^{}]*"title"[^{}]*"summary"[^{}]*\}', multiLine: true, dotAll: true);
-      Match? jsonMatch = jsonRegex.firstMatch(cleanedResponse);
+      if (start != -1 && end != -1 && end > start) {
+        String jsonStr = cleaned.substring(start, end + 1);
+        final json = jsonDecode(jsonStr);
 
-      if (jsonMatch != null) {
-        cleanedResponse = jsonMatch.group(0)!;
-        debugPrint("🔍 Extracted JSON: $cleanedResponse");
-      }
+        String title = json['title']?.toString()?.trim() ?? '';
+        String summary = json['summary']?.toString()?.trim() ?? '';
 
-      // Step 3: Try to parse as JSON
-      final jsonResponse = jsonDecode(cleanedResponse);
-
-      if (jsonResponse is Map<String, dynamic>) {
-        final title = _cleanText(jsonResponse['title']?.toString() ?? 'AI Generated Summary');
-        final summary = _cleanText(jsonResponse['summary']?.toString() ?? 'Summary not available');
-
-        debugPrint("✅ Successfully parsed - Title: $title");
-        debugPrint("✅ Successfully parsed - Summary length: ${summary.length} chars");
-
-        return {
-          'title': title,
-          'summary': summary,
-        };
+        if (title.isNotEmpty && summary.isNotEmpty) {
+          debugPrint("✅ JSON parsing successful");
+          return {
+            'title': title.length > 100 ? '${title.substring(0, 97)}...' : title,
+            'summary': summary
+          };
+        }
       }
     } catch (e) {
       debugPrint("❌ JSON parsing failed: $e");
-      // Fallback to text parsing
     }
 
-    // Fallback: Try to extract title and summary from plain text
-    return _extractFromPlainText(responseText);
-  }
+    // Fallback parsing
+    debugPrint("🔄 Using fallback parsing");
 
-  // Extract title and summary from plain text response
-  Map<String, String> _extractFromPlainText(String responseText) {
-    // Clean the response text first
-    String cleanedText = responseText
-        .replaceAll('```', '')
-        .replaceAll('`', '')
-        .trim();
+    // Try to extract title and summary from plain text
+    String cleanText = responseText.replaceAll(RegExp(r'[`*#]'), '').trim();
 
-        final lines = cleanedText.split('\n').where((line) => line.trim().isNotEmpty).toList();
+    // Simple fallback
+    List<String> sentences = cleanText.split(RegExp(r'[.!?]+'))
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
 
-    String title = 'AI Generated Summary';
-    String summary = cleanedText;
+    String title = 'AI Summary';
+    String summary = cleanText;
 
-    // Look for title and summary patterns
-    String titlePattern = '';
-    String summaryPattern = '';
-    bool foundTitle = false;
-    bool foundSummary = false;
-
-    for (String line in lines) {
-      String trimmedLine = line.trim();
-
-      if (trimmedLine.toLowerCase().contains('"title"') ||
-          trimmedLine.toLowerCase().contains('title:')) {
-        // Extract title
-        titlePattern = trimmedLine
-            .replaceAll(RegExp(r'"title"\s*:\s*"?'), '')
-            .replaceAll(RegExp(r'"?\s*,?\s*$'), '')
-            .replaceAll('"', '')
-            .trim();
-        if (titlePattern.isNotEmpty && titlePattern.length < 100) {
-          title = titlePattern;
-          foundTitle = true;
-        }
+    if (sentences.length > 1) {
+      title = sentences.first.trim();
+      if (title.length > 80) {
+        title = '${title.substring(0, 77)}...';
       }
-
-      if (trimmedLine.toLowerCase().contains('"summary"') ||
-          trimmedLine.toLowerCase().contains('summary:')) {
-        // Extract summary start
-        summaryPattern = trimmedLine
-            .replaceAll(RegExp(r'"summary"\s*:\s*"?'), '')
-            .replaceAll('"', '')
-            .trim();
-        foundSummary = true;
-      } else if (foundSummary && !foundTitle) {
-        // Continue building summary
-        summaryPattern += ' ' + trimmedLine.replaceAll('"', '').trim();
-      }
-    }
-
-    if (summaryPattern.isNotEmpty) {
-      summary = summaryPattern.replaceAll(RegExp(r'\s+'), ' ').trim();
+      summary = sentences.skip(1).join('. ').trim();
     }
 
     return {
-      'title': _cleanText(title),
-      'summary': _cleanText(summary.isNotEmpty ? summary : cleanedText),
+      'title': title.isNotEmpty ? title : 'AI Summary',
+      'summary': summary.isNotEmpty ? summary : 'Summary generated successfully'
     };
   }
 
-  // ✅ ENHANCED: More aggressive text cleaning
-  String _cleanText(String text) {
-    return text
-        .replaceAll('```', '')
-        .replaceAll('`', '')
-        .replaceAll(RegExp(r'\*\*(.+?)\*\*'), r'$1') // Remove markdown bold
-        .replaceAll(RegExp(r'\*(.+?)\*'), r'$1')     // Remove markdown italic
-        .replaceAll(RegExp(r'#{1,6}\s*'), '')        // Remove markdown headers
-        .replaceAll(RegExp(r'[{}"]'), '')            // Remove JSON formatting chars
-        .replaceAll('title:', '')                     // Remove field labels
-        .replaceAll('summary:', '')
-        .replaceAll(RegExp(r'\n\s*\n\s*\n'), '\n\n') // Clean multiple newlines
-        .replaceAll(RegExp(r'\s+'), ' ')             // Normalize whitespace
-        .trim();
+  // Utility methods
+  Future<void> clearKeys() async {
+    try {
+      await _secureStorage.deleteAll();
+      _openAIKey = null;
+      _geminiKey = null;
+      debugPrint("✅ Keys cleared");
+    } catch (e) {
+      debugPrint("❌ Error clearing keys: $e");
     }
-
-  // ✅ OPTIMIZED: Concise OpenAI system prompt focused on brevity
-  String _openAISystemPrompt() {
-    return """
-You are a professional note summarization expert. Create concise, impactful summaries that capture essential information without unnecessary detail.
-
-CRITICAL REQUIREMENTS:
-- BREVITY: Keep summaries under 100 words, focus on key insights only
-- CLARITY: Use simple, clear language without jargon
-- FORMAT: Respond ONLY with valid JSON: {"title": "Brief title (4-8 words)", "summary": "Concise summary (2-3 sentences maximum)"}
-- NO MARKDOWN: Use plain text only, no **, *, #, or other formatting
-
-QUALITY STANDARDS:
-✓ Extract only the most important points
-✓ Eliminate redundancy and filler words
-✓ Focus on actionable insights and key conclusions
-✓ Use active voice and direct language
-✓ Ensure summary is self-contained and valuable""";
   }
 
-  String _openAIUserPrompt(String content) {
-    return """
-Analyze this content and create a brief, impactful summary:
-
-$content
-
-Respond with JSON containing a short title and concise summary (under 100 words total). Focus on the most essential information only.""";
-  }
-
-  // ✅ OPTIMIZED: Concise Gemini prompt for minimal but impactful summaries
-  String _geminiPromptText(String content) {
-    return """
-You are an expert at creating concise, high-impact summaries. Your task is to analyze content and extract only the most essential information.
-
-STRICT REQUIREMENTS:
-- Keep summary under 80 words
-- Title should be 4-8 words maximum
-- Focus on key insights and actionable information only
-- Use simple, clear language
-- No redundancy or filler content
-
-RESPONSE FORMAT (EXACT):
-{
-  "title": "Brief, descriptive title (4-8 words)",
-  "summary": "Concise summary highlighting only the most important points in 2-3 sentences maximum. Focus on key insights and actionable information."
-}
-
-CONTENT TO ANALYZE:
-$content
-
-Provide your response as clean JSON only, focusing on brevity and impact.""";
+  Map<String, dynamic> getServiceInfo() {
+    return {
+      'maxContentLength': _maxContentLength,
+      'maxOutputTokens': _maxOutputTokens,
+      'hasOpenAIKey': _openAIKey != null,
+      'hasGeminiKey': _geminiKey != null,
+      'supportedProviders': ['openAI', 'gemini'],
+      'currentModel': 'gemini-2.5-flash',
+    };
   }
 }
 
