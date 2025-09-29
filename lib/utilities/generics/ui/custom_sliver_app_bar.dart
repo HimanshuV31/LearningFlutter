@@ -196,9 +196,9 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
       height: kToolbarHeight - 4,
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(100),
+        color: Colors.white.withAlpha(255),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withAlpha(40), width: 1.2),
+        border: Border.all(color: Colors.white.withAlpha(102), width: 1.2),
         boxShadow: UIConstants.containerShadow,
       ),
       alignment: Alignment.center,
@@ -257,7 +257,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
         child: Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: Colors.black.withAlpha(100), // ✅ FIXED: Increased from 80 to 100
+            color: Colors.black.withAlpha(255), // ✅ FIXED: Increased from 80 to 100
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white.withAlpha(200), width: 1.5), // ✅ FIXED: Increased from 90 to 200
             boxShadow: UIConstants.strongShadow,

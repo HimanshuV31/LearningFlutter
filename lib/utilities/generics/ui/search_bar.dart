@@ -59,9 +59,9 @@ class _SearchBarState extends State<SearchBar> with TickerProviderStateMixin {
     }
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(40),
+        color: Colors.white.withAlpha(102),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withAlpha(60), width: 1.5),
+        border: Border.all(color: Colors.white.withAlpha(153), width: 1.5),
         boxShadow: UIConstants.containerShadow,
       ),
       child: Row(

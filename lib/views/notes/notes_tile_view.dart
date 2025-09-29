@@ -123,7 +123,7 @@ class _NoteTile extends StatelessWidget {
               spreadRadius: 1,
             ),
             BoxShadow(
-              color: Colors.black.withAlpha(8),
+              color: Colors.black.withAlpha(21),
               blurRadius: 12,
               offset: const Offset(0, 6),
               spreadRadius: 0,

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,7 +12,7 @@ class AIService {
   // Secure storage for API keys
   final _secureStorage = const FlutterSecureStorage();
 
-  // 🚀 FIXED: Using current Gemini 2.5 models (2025)
+  // Using current Gemini 2.5 models (2025)
   static const String _openAIUrl = 'https://api.openai.com/v1/chat/completions';
   static const String _geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
@@ -68,7 +68,7 @@ class AIService {
     // Simple truncation
     String processedContent = content.trim();
     if (processedContent.length > _maxContentLength) {
-      processedContent = processedContent.substring(0, _maxContentLength) + "...";
+      processedContent = "${processedContent.substring(0, _maxContentLength)}...";
     }
 
     debugPrint("🔍 Processing content: ${processedContent.length} chars");
@@ -81,7 +81,7 @@ class AIService {
     }
   }
 
-  // 🚀 GEMINI API CALL - Using 2.5 Flash model
+  // GEMINI API CALL - Using 2.5 Flash model
   Future<Map<String, String>> _callGemini(String content) async {
     if (_geminiKey == null) {
       throw AIServiceException('Gemini API key not configured');
@@ -91,19 +91,15 @@ class AIService {
     debugPrint("🌐 Endpoint: $_geminiUrl");
 
     String prompt = '''Create a concise summary in JSON format:
-
-{
-  "title": "Brief descriptive title (5-10 words)",
-  "summary": "Clear summary covering the main points and key information"
-}
-
-Content: $content
-
-Return only valid JSON:''';
+      {
+         "title": "Brief descriptive title (5-10 words)",
+         "summary": "Clear summary covering the main points and key information"
+      }
+      Content: $content
+      Return only valid JSON:''';
 
     try {
       final client = http.Client();
-
       final requestBody = {
         'contents': [
           {
@@ -251,8 +247,8 @@ Return only valid JSON:''';
         String jsonStr = cleaned.substring(start, end + 1);
         final json = jsonDecode(jsonStr);
 
-        String title = json['title']?.toString()?.trim() ?? '';
-        String summary = json['summary']?.toString()?.trim() ?? '';
+        String title = json['title']?.toString().trim() ?? '';
+        String summary = json['summary']?.toString().trim() ?? '';
 
         if (title.isNotEmpty && summary.isNotEmpty) {
           debugPrint("✅ JSON parsing successful");

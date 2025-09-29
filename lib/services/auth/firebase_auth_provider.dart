@@ -167,15 +167,15 @@ class FirebaseAuthProvider implements AuthProvider {
       if (user == null) {
         throw const UserNotFoundAuthException();
       }
-      debugPrint("FirebaseAUthProvider (reloadUser): Reloading User.");
+      debugPrint("FirebaseAuthProvider (reloadUser): Reloading User.");
       await user.reload(); // refresh user from Firebase
-      debugPrint("FirebaseAUthProvider (reloadUser): Reload successful. Now FreshUser");
+      debugPrint("FirebaseAuthProvider (reloadUser): Reload successful. Now FreshUser");
       final freshUser = FirebaseAuth.instance.currentUser;
       if(freshUser == null){
-        debugPrint("FirebaseAUthProvider (reloadUser): FreshUser is null.");
+        debugPrint("FirebaseAuthProvider (reloadUser): FreshUser is null.");
         throw const UserNotFoundAuthException();
       }
-      debugPrint("FirebaseAUthProvider (reloadUser): Returning freshUser.");
+      debugPrint("FirebaseAuthProvider (reloadUser): Returning freshUser.");
       return AuthUser.fromFirebase(freshUser);
     } on FirebaseAuthException catch (e) {
       throw AuthException.fromCode(e.code);

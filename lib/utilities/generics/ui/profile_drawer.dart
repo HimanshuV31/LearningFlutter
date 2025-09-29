@@ -48,7 +48,7 @@ class ProfileDrawer extends StatelessWidget {
     final drawerWidth = screenWidth * 0.45;
 
     return Scaffold(
-      backgroundColor: Colors.black.withAlpha(40), // Dark overlay
+      backgroundColor: Colors.black.withAlpha(102), // Dark overlay
       body: GestureDetector(
         onTap: () => Navigator.of(context).pop(),
         child: Container(
@@ -103,7 +103,7 @@ class ProfileDrawer extends StatelessWidget {
                             color: Colors.white.withAlpha(40), // ✅ FIXED: Increased from 20 to 40
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.white.withAlpha(60), // ✅ FIXED: Increased from 30 to 60
+                              color: Colors.white.withAlpha(153), // ✅ FIXED: Increased from 30 to 60
                               width: 2,
                             ),
                           ),

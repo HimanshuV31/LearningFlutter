@@ -64,7 +64,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) async {
-
         if(state.isLoading){
           LoadingScreen().show(
               context: context,

@@ -10,14 +10,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     //Initialize
     on<AuthEventInitialize>((event, emit) async {
       await provider.initialize();
-
       try{
         debugPrint("AuthBloc: Reloading user");
         await provider.reloadUser();
       }catch(_){
         debugPrint("AuthBloc: Error reloading user");
       }
-
       final user = provider.currentUser;
       if (user == null) {
         emit(const AuthStateLoggedOut(exception: null, isLoading: false));
@@ -130,8 +128,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthStateNavigateToVerifyEmail());
     });
     //Send Verification Email
-    on<AuthEventSendEmailVerification>((event, emit) async
-    {
+    on<AuthEventSendEmailVerification>((event, emit) async {
       await provider.sendEmailVerification();
       emit(state);
     });

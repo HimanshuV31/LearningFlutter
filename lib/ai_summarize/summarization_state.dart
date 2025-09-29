@@ -1,4 +1,3 @@
-// States
 import 'package:equatable/equatable.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 
@@ -6,8 +5,7 @@ abstract class SummarizationState extends Equatable {}
 
 class SummarizationInitial extends SummarizationState {
   @override
-  // TODO: implement props
-  List<Object?> get props => throw UnimplementedError();
+  List<Object> get props => []; // No properties to compare
 }
 
 class SummarizationLoading extends SummarizationState {
@@ -15,8 +13,7 @@ class SummarizationLoading extends SummarizationState {
   SummarizationLoading({this.progress});
 
   @override
-  // TODO: implement props
-  List<Object?> get props => throw UnimplementedError();
+  List<Object?> get props => [progress]; // Compare progress value
 }
 
 class SummarizationSuccess extends SummarizationState {
@@ -25,8 +22,7 @@ class SummarizationSuccess extends SummarizationState {
   SummarizationSuccess({required this.summary, required this.originalNote});
 
   @override
-  // TODO: implement props
-  List<Object?> get props => throw UnimplementedError();
+  List<Object> get props => [summary, originalNote]; // Compare both values
 }
 
 class SummarizationError extends SummarizationState {
@@ -34,6 +30,5 @@ class SummarizationError extends SummarizationState {
   SummarizationError(this.error);
 
   @override
-  // TODO: implement props
-  List<Object?> get props => throw UnimplementedError();
+  List<Object> get props => [error]; // Compare error message
 }

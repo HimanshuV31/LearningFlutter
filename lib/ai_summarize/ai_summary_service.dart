@@ -1,5 +1,3 @@
-
-// ✅ Pure Business Logic - No UI Dependencies
 import 'package:infinity_notes/ai_summarize/ai_service.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
@@ -22,9 +20,7 @@ class AISummaryService {
       if (content.trim().isEmpty) {
         throw AISummaryException('Content cannot be empty');
       }
-
       final summaryData = await _aiService.summarizeText(content, provider: provider);
-
       return AISummaryResult(
         originalTitle: title ?? 'Untitled',
         aiGeneratedTitle: summaryData['title'] ?? 'Untitled Summary',

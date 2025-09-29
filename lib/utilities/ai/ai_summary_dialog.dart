@@ -47,7 +47,6 @@ class AISummaryDialog extends StatefulWidget {
 
 class _AISummaryDialogState extends State<AISummaryDialog> {
   final AISummaryService _summaryService = AISummaryService();
-
   bool _isLoading = false;
   AISummaryResult? _summaryResult;
 
@@ -83,7 +82,6 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
 
     try {
       final currentUser = AuthService.firebase().currentUser!;
-
       await _summaryService.saveSummaryAsNote(
         summaryResult: _summaryResult!,
         userId: currentUser.id,
@@ -126,9 +124,9 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.2),
+        color: Colors.green.withAlpha(51),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        border: Border.all(color: Colors.green.withAlpha(77)),
       ),
       child: const Text(
         'Ready',
@@ -209,17 +207,17 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
       children: [
         Text(
           'Preview Title:',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Colors.grey[600],
-          ),
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall?.copyWith(color: Colors.grey[600]),
         ),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.blue.withAlpha(26),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+            border: Border.all(color: Colors.blue.withAlpha(77)),
           ),
           child: Text(
             _summaryResult!.formattedTitle,
@@ -247,9 +245,9 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha(26),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+            border: Border.all(color: Colors.grey.withAlpha(77)),
           ),
           child: Text(_summaryResult!.summary),
         ),
