@@ -23,7 +23,8 @@ class FirebaseCloudStorage {
     String title = "",
     String text = "",
     List<String>? links,
-  }) async {
+  }) async
+  {
     try {
       final now = FieldValue.serverTimestamp();
 
@@ -64,7 +65,8 @@ class FirebaseCloudStorage {
     required String title,
     required String text,
     List<String>? links,
-  }) async {
+  }) async
+  {
     try {
       await notes.doc(documentId).update({
         titleFieldName: title,
@@ -99,17 +101,18 @@ class FirebaseCloudStorage {
   /// Get all notes for a user, sorted newest first (client-side sorting)
   Stream<Iterable<CloudNote>> allNotes({
     required String ownerUserId,
-  }) {
+  })
+  {
     return notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .limit(100)
         .snapshots()
         .map((event) {
       final notesList = event.docs
-          .map((doc) => _createCloudNoteFromDoc(doc)) // ✅ FIX: Use helper method
+          .map((doc) => _createCloudNoteFromDoc(doc)) //  Use helper method
           .toList();
 
-      // ✅ CLIENT-SIDE SORT: No index required
+      //  CLIENT-SIDE SORT: No index required
       notesList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
       return notesList;
@@ -119,17 +122,18 @@ class FirebaseCloudStorage {
   /// Get notes sorted by creation date (newest first)
   Stream<Iterable<CloudNote>> notesSortedByCreation({
     required String ownerUserId,
-  }) {
+  })
+  {
     return notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .limit(100)
         .snapshots()
         .map((event) {
       final notesList = event.docs
-          .map((doc) => _createCloudNoteFromDoc(doc)) // ✅ FIX: Use helper method
+          .map((doc) => _createCloudNoteFromDoc(doc)) //  Use helper method
           .toList();
 
-      // ✅ CLIENT-SIDE SORT: By creation date
+      //  CLIENT-SIDE SORT: By creation date
       notesList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       return notesList;
@@ -140,7 +144,8 @@ class FirebaseCloudStorage {
   Stream<Iterable<CloudNote>> recentNotes({
     required String ownerUserId,
     int days = 7,
-  }) {
+  })
+  {
     return notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .limit(100)
@@ -149,11 +154,11 @@ class FirebaseCloudStorage {
       final cutoffDate = DateTime.now().subtract(Duration(days: days));
 
       final notesList = event.docs
-          .map((doc) => _createCloudNoteFromDoc(doc)) // ✅ FIX: Use helper method
+          .map((doc) => _createCloudNoteFromDoc(doc)) //  Use helper method
           .where((note) => note.updatedAt.isAfter(cutoffDate))
           .toList();
 
-      // ✅ CLIENT-SIDE SORT: Recent notes first
+      //  CLIENT-SIDE SORT: Recent notes first
       notesList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
       return notesList;
@@ -168,7 +173,8 @@ class FirebaseCloudStorage {
   Future<void> updateNoteLinks({
     required String documentId,
     required List<String>? links,
-  }) async {
+  }) async
+  {
     try {
       await notes.doc(documentId).update({
         linksFieldName: links,
@@ -186,7 +192,8 @@ class FirebaseCloudStorage {
   Future<void> addLinkToNote({
     required String documentId,
     required String linkUrl,
-  }) async {
+  }) async
+  {
     try {
       await notes.doc(documentId).update({
         linksFieldName: FieldValue.arrayUnion([linkUrl]),
@@ -204,7 +211,8 @@ class FirebaseCloudStorage {
   Future<void> removeLinkFromNote({
     required String documentId,
     required String linkUrl,
-  }) async {
+  }) async
+  {
     try {
       await notes.doc(documentId).update({
         linksFieldName: FieldValue.arrayRemove([linkUrl]),
@@ -222,7 +230,8 @@ class FirebaseCloudStorage {
   Stream<Iterable<CloudNote>> notesWithLink({
     required String ownerUserId,
     required String linkUrl,
-  }) {
+  })
+  {
     return notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .where(linksFieldName, arrayContains: linkUrl)
@@ -230,10 +239,10 @@ class FirebaseCloudStorage {
         .snapshots()
         .map((event) {
       final notesList = event.docs
-          .map((doc) => _createCloudNoteFromDoc(doc)) // ✅ FIX: Use helper method
+          .map((doc) => _createCloudNoteFromDoc(doc)) //  Use helper method
           .toList();
 
-      // ✅ CLIENT-SIDE SORT: Latest first
+      //  CLIENT-SIDE SORT: Latest first
       notesList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
       return notesList;
@@ -243,18 +252,19 @@ class FirebaseCloudStorage {
   /// Get all notes that contain any links
   Stream<Iterable<CloudNote>> notesWithAnyLinks({
     required String ownerUserId,
-  }) {
+  })
+  {
     return notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .limit(100)
         .snapshots()
         .map((event) {
       final notesList = event.docs
-          .map((doc) => _createCloudNoteFromDoc(doc)) // ✅ FIX: Use helper method
+          .map((doc) => _createCloudNoteFromDoc(doc)) //  Use helper method
           .where((note) => note.hasLinks) // Filter on client side
           .toList();
 
-      // ✅ CLIENT-SIDE SORT: Latest first
+      //  CLIENT-SIDE SORT: Latest first
       notesList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
       return notesList;
@@ -270,17 +280,18 @@ class FirebaseCloudStorage {
     required String ownerUserId,
     int limit = 20,
     CloudNote? lastNote,
-  }) {
+  })
+  {
     Query query = notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .limit(limit);
 
     return query.snapshots().map((event) {
       final notesList = event.docs
-          .map((doc) => _createCloudNoteFromDoc(doc)) // ✅ FIX: Use helper method
+          .map((doc) => _createCloudNoteFromDoc(doc)) //  Use helper method
           .toList();
 
-      // ✅ CLIENT-SIDE SORT: Latest first
+      //  CLIENT-SIDE SORT: Latest first
       notesList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
       return notesList;
@@ -291,7 +302,8 @@ class FirebaseCloudStorage {
   Stream<Iterable<CloudNote>> searchNotes({
     required String ownerUserId,
     required String searchQuery,
-  }) {
+  })
+  {
     return notes
         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
         .limit(100)
@@ -300,13 +312,13 @@ class FirebaseCloudStorage {
       final searchLower = searchQuery.toLowerCase();
 
       final filteredNotes = event.docs
-          .map((doc) => _createCloudNoteFromDoc(doc)) // ✅ FIX: Use helper method
+          .map((doc) => _createCloudNoteFromDoc(doc)) //  Use helper method
           .where((note) =>
       note.title.toLowerCase().contains(searchLower) ||
           note.text.toLowerCase().contains(searchLower))
           .toList();
 
-      // ✅ CLIENT-SIDE SORT: Latest first
+      //  CLIENT-SIDE SORT: Latest first
       filteredNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
       return filteredNotes;
@@ -329,9 +341,9 @@ class FirebaseCloudStorage {
   // UTILITY METHODS
   // ============================
 
-  /// ✅ HELPER: Create CloudNote from QueryDocumentSnapshot with proper type casting
+  ///  HELPER: Create CloudNote from QueryDocumentSnapshot with proper type casting
   CloudNote _createCloudNoteFromDoc(QueryDocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>; // ✅ FIX: Explicit cast
+    final data = doc.data() as Map<String, dynamic>; //  Explicit cast
 
     return CloudNote(
       documentId: doc.id,

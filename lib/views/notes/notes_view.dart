@@ -143,7 +143,7 @@ class _NotesViewState extends State<NotesView>{
                               _searchBloc.add(SearchQueryChanged(query)),
                         ),
 
-                        // ✅ FIXED: Notes with proper Sliver implementation
+                        //  Notes with proper Sliver implementation
                         BlocBuilder<SearchBloc, SearchState>(
                           builder: (context, searchState) {
                             return _buildNotesContent(
@@ -206,15 +206,13 @@ class _NotesViewState extends State<NotesView>{
     }
   }
 
-  // ✅ COMPLETELY REWRITTEN: Proper Sliver implementation
+  // Sliver implementation
   Widget _buildNotesContent(
       Iterable<CloudNote> allNotes,
       SearchState searchState,
       ) {
     debugPrint("🔍 _buildNotesContent: searchState = $searchState");
-
     Iterable<CloudNote> notesToShow;
-
     switch (searchState.runtimeType) {
       case SearchResults:
         final state = searchState as SearchResults;
@@ -271,7 +269,6 @@ class _NotesViewState extends State<NotesView>{
       );
     }
 
-    // ✅ FIXED: Return proper Sliver widgets
     if (_showListView) {
       return SliverNotesListView(
         notes: notesToShow,

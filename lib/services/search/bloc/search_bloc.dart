@@ -25,7 +25,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     debugPrint("🔍 SearchBloc initialized with ${_allNotes.length} notes");
   }
 
-  // ✅ FIXED: No Timer, synchronous search
+  //  No Timer, synchronous search
   void _onSearchQueryChanged(SearchQueryChanged event, Emitter<SearchState> emit) {
     final query = event.query.trim();
     debugPrint("🔍 SearchBloc: Processing query '$query'");

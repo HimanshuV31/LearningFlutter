@@ -3,7 +3,6 @@ import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
 import 'package:infinity_notes/utilities/generics/ui/linkify_text.dart';
 
-// ✅ CONVERTED: Regular NotesListView (keep this for other uses)
 class NotesListView extends StatelessWidget {
   final Iterable<CloudNote> notes;
   final Function(CloudNote) onTapNote;
@@ -65,7 +64,6 @@ class NotesListView extends StatelessWidget {
   }
 }
 
-// ✅ NEW: Sliver version for CustomScrollView
 class SliverNotesListView extends StatelessWidget {
   final Iterable<CloudNote> notes;
   final Function(CloudNote) onTapNote;
@@ -92,7 +90,7 @@ class SliverNotesListView extends StatelessWidget {
     final notesList = notes.toList();
 
     if (columns == 1) {
-      // ✅ SLIVER LIST: Proper scrolling in CustomScrollView
+      //SLIVER LIST: Proper scrolling in CustomScrollView
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         sliver: SliverList(
@@ -101,7 +99,7 @@ class SliverNotesListView extends StatelessWidget {
               final note = notesList[index];
               return Padding(
                 padding: EdgeInsets.only(
-                  top: index == 0 ? 10 : 4, // ✅ Tight vertical spacing
+                  top: index == 0 ? 10 : 4, //  Tight vertical spacing
                   bottom: index == notesList.length - 1 ? 10 : 4,
                 ),
               child: NoteListTile(
@@ -116,7 +114,7 @@ class SliverNotesListView extends StatelessWidget {
         ),
       );
     } else {
-      // ✅ SLIVER GRID: Proper scrolling in CustomScrollView
+      //  SLIVER GRID: Proper scrolling in CustomScrollView
       return SliverPadding(
         padding: const EdgeInsets.all(10),
         sliver: SliverGrid(

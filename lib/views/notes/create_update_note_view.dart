@@ -9,7 +9,6 @@ import 'package:infinity_notes/services/notes_actions/share_note.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
-// ✅ Clean import - only what's needed
 import 'package:infinity_notes/utilities/ai/ai_helper.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
@@ -119,7 +118,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     });
   }
 
-  // ✅ ADDED: Helper method to extract links from DetectedLink objects
+  //  ADDED: Helper method to extract links from DetectedLink objects
   List<String>? _getLinksFromDetectedLinks() {
     return _detectedLinks.isNotEmpty ? _detectedLinks.map((link) => link.url).toList() : null;
   }
@@ -150,7 +149,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     await _updateNote(title, text);
   }
 
-  // ✅ UPDATED: Create note with links
+  //  UPDATED: Create note with links
   Future<void> _createNote(String userId, String title, String text) async {
     final links = _getLinksFromDetectedLinks();
 
@@ -158,7 +157,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       ownerUserId: userId,
       title: title,
       text: text,
-      links: links, // ✅ Pass detected links
+      links: links, //  Pass detected links
     );
 
     setState(() {
@@ -170,7 +169,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     debugPrint("📝 Created note with ${links?.length ?? 0} links");
   }
 
-  // ✅ UPDATED: Update note with links
+  //  UPDATED: Update note with links
   Future<void> _updateNote(String title, String text) async {
     final links = _getLinksFromDetectedLinks();
 
@@ -178,7 +177,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       documentId: _note!.documentId,
       title: title,
       text: text,
-      links: links, // ✅ Update links
+      links: links, //  Update links
     );
 
     setState(() {
@@ -189,7 +188,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     debugPrint("📝 Updated note with ${links?.length ?? 0} links");
   }
 
-  // ✅ UPDATED: Initialize detected links from existing note
+  //  UPDATED: Initialize detected links from existing note
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -201,7 +200,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       _initialTitle = _note!.title;
       _initialText = _note!.text;
 
-      // ✅ UPDATED: Initialize detected links from database
+      //  UPDATED: Initialize detected links from database
       if (_note!.hasLinks) {
         _detectedLinks = _note!.safeLinks.map((url) => DetectedLink(
           url: url,
@@ -235,7 +234,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     }
   }
 
-  // ✅ SIMPLIFIED: Menu actions with clean delegation
+  //  SIMPLIFIED: Menu actions with clean delegation
   void _handleMenuAction(String action) async {
     switch (action) {
       case 'summarize':
@@ -253,7 +252,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     }
   }
 
-  // ✅ CLEAN: Simple delegation to AI helper
+  //  CLEAN: Simple delegation to AI helper
   void _handleSummarizeAction() {
     AIHelper.handleSummarizeAction(
       context: context,
@@ -334,7 +333,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     );
   }
 
-  // ✅ UPDATED: Save as new note with links
+  //  UPDATED: Save as new note with links
   Future<void> _saveAsNewNote() async {
     final title = _titleController.text.trim();
     final text = _textController.text.trim();
@@ -348,7 +347,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         ownerUserId: currentUser.id,
         title: newTitle,
         text: text,
-        links: links, // ✅ Include links in copy
+        links: links, //  Include links in copy
       );
       if (!mounted) return;
       showCustomToast(context, "Note saved as: \"$newTitle\"");
@@ -357,7 +356,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     }
   }
 
-  // ✅ UPDATED: Duplicate note with links
+  //  UPDATED: Duplicate note with links
   Future<void> _handleDuplicateAction() async {
     final title = _titleController.text.trim();
     final text = _textController.text.trim();
@@ -376,7 +375,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         ownerUserId: currentUser.id,
         title: duplicatedTitle,
         text: text,
-        links: links, // ✅ Include links in duplicate
+        links: links, //  Include links in duplicate
       );
       if (!mounted) return;
       showCustomToast(context, "Note duplicated successfully!");
@@ -385,7 +384,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     }
   }
 
-  // ✅ CLEAN: Simple helper using AIHelper validation
+  //  CLEAN: Simple helper using AIHelper validation
   bool get _canSummarize => AIHelper.canSummarizeContent(_textController.text);
 
   @override

@@ -10,7 +10,7 @@ class AISummaryService {
   final AIService _aiService = AIService();
   final FirebaseCloudStorage _cloudStorage = FirebaseCloudStorage();
 
-  // ✅ Core business logic for generating summaries
+  //  Core business logic for generating summaries
   Future<AISummaryResult> generateSummary({
     required String content,
     String? title,
@@ -38,7 +38,7 @@ class AISummaryService {
     }
   }
 
-  // ✅ Business logic for saving AI summaries with proper formatting
+  //  Business logic for saving AI summaries with proper formatting
   Future<CloudNote> saveSummaryAsNote({
     required AISummaryResult summaryResult,
     required String userId,
@@ -47,7 +47,7 @@ class AISummaryService {
       throw AISummaryException('Cannot save failed summary');
     }
 
-    // ✅ Apply [AI Summary] formatting here
+    //  Apply [AI Summary] formatting here
     final formattedTitle = "[AI Summary] ${summaryResult.aiGeneratedTitle}";
 
     final savedNote = await _cloudStorage.createNewNote(
@@ -59,12 +59,12 @@ class AISummaryService {
     return savedNote;
   }
 
-  // ✅ Validation logic
+  //  Validation logic
   bool canSummarize(String content) {
     return content.trim().isNotEmpty;
   }
 
-  // ✅ Create temporary CloudNote for processing
+  //  Create temporary CloudNote for processing
   CloudNote createTempNote({
     required String title,
     required String content,
@@ -78,13 +78,13 @@ class AISummaryService {
       title: title.isNotEmpty ? title : 'Untitled Note',
       text: content,
       links: links ?? [],
-      createdAt: now, // ✅ ADD: Current timestamp
-      updatedAt: now, // ✅ ADD: Current timestamp
+      createdAt: now, //  ADD: Current timestamp
+      updatedAt: now, //  ADD: Current timestamp
     );
   }
 }
 
-// ✅ Data models for clean data transfer
+//  Data models for clean data transfer
 class AISummaryResult {
   final String originalTitle;
   final String aiGeneratedTitle;
@@ -100,7 +100,7 @@ class AISummaryResult {
     this.error,
   });
 
-  // ✅ Computed property for formatted title
+  //  Computed property for formatted title
   String get formattedTitle => "[AI Summary] $aiGeneratedTitle";
 }
 

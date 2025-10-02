@@ -3,16 +3,16 @@ import 'package:infinity_notes/ai_summarize/ai_service.dart';
 import 'package:infinity_notes/ai_summarize/ai_summary_service.dart';
 import 'package:infinity_notes/utilities/ai/ai_summary_dialog.dart';
 
-// ✅ Clean utility functions with no business logic
+//  Clean utility functions with no business logic
 class AIHelper {
   static final AISummaryService _summaryService = AISummaryService();
 
-  // ✅ Simple validation helper
+  //  Simple validation helper
   static bool canSummarizeContent(String content) {
     return _summaryService.canSummarize(content);
   }
 
-  // ✅ Main entry point for AI summarization
+  //  Main entry point for AI summarization
   static Future<void> showSummaryDialog({
     required BuildContext context,
     required String content,
@@ -38,7 +38,7 @@ class AIHelper {
     );
   }
 
-  // ✅ Quick action helper for menu integration
+  //  Quick action helper for menu integration
   static void handleSummarizeAction({
     required BuildContext context,
     required String content,

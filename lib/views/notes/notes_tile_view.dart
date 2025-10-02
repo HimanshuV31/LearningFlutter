@@ -4,7 +4,7 @@ import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/platform/platform_utils.dart';
 import 'package:infinity_notes/utilities/generics/ui/linkify_text.dart';
 
-// ✅ CONVERTED: Regular NotesTileView (keep this for other uses)
+//  CONVERTED: Regular NotesTileView (keep this for other uses)
 class NotesTileView extends StatelessWidget {
   final Iterable<CloudNote> notes;
   final Function(CloudNote) onTapNote;
@@ -33,7 +33,7 @@ class NotesTileView extends StatelessWidget {
       mainAxisSpacing: 8,
       itemCount: notes.length,
       padding: const EdgeInsets.all(10),
-      physics: const AlwaysScrollableScrollPhysics(), // ✅ FIXED: Enable scrolling
+      physics: const AlwaysScrollableScrollPhysics(), //  Enable scrolling
       itemBuilder: (context, index) {
         final note = notes.elementAt(index);
         return _NoteTile(
@@ -46,7 +46,7 @@ class NotesTileView extends StatelessWidget {
   }
 }
 
-// ✅ NEW: Sliver version for CustomScrollView
+//  NEW: Sliver version for CustomScrollView
 class SliverNotesTileView extends StatelessWidget {
   final Iterable<CloudNote> notes;
   final Function(CloudNote) onTapNote;
@@ -71,7 +71,7 @@ class SliverNotesTileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final notesList = notes.toList();
 
-    // ✅ SLIVER MASONRY GRID: Proper scrolling in CustomScrollView
+    //  SLIVER MASONRY GRID: Proper scrolling in CustomScrollView
     return SliverPadding(
       padding: const EdgeInsets.all(8),
       sliver: SliverMasonryGrid.count(
@@ -110,7 +110,7 @@ class _NoteTile extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Container(
-        padding: const EdgeInsets.all(12), // ✅ ADDED: Internal padding
+        padding: const EdgeInsets.all(12), //  ADDED: Internal padding
         decoration: BoxDecoration(
           color: foregroundColor,
           borderRadius: BorderRadius.circular(5),
@@ -157,7 +157,7 @@ class _NoteTile extends StatelessWidget {
                 ),
               ),
             ],
-            // ✅ ADDED: Show timestamp
+            //  ADDED: Show timestamp
             if (note.timeAgo.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(

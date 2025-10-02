@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:infinity_notes/enums/menu_actions.dart';
 import 'package:infinity_notes/utilities/generics/ui/animation/animation_controller.dart';
-import 'package:infinity_notes/utilities/generics/ui/animation/animation_storage.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/profile_drawer.dart';
 import 'package:infinity_notes/utilities/generics/ui/ui_constants.dart';
-
 import 'search_bar.dart' as custom;
 
 enum AppBarMode { normal, searching }
@@ -26,7 +23,6 @@ class CustomSliverAppBar extends StatefulWidget {
   final double? titleSpacing;
   final String userEmail;
   final bool hasNotes;
-  // final List<PopupMenuEntry> menuItems;
   final Function(String)? onSearchChanged;
   final VoidCallback? onToggleView;
   final bool isListView;
@@ -52,7 +48,6 @@ class CustomSliverAppBar extends StatefulWidget {
     this.titleSpacing,
     required this.userEmail,
     required this.hasNotes,
-    // required this.menuItems,
     this.onSearchChanged,
     this.onToggleView,
     required this.isListView,
@@ -88,11 +83,11 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
 
   void _setupFadeAnimations() {
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800), // ✅ Shorter for cleaner fade
+      duration: const Duration(milliseconds: 800), //  Shorter for cleaner fade
       vsync: this,
     );
 
-    // ✅ CLEAN: Simple fade out for title
+    //  CLEAN: Simple fade out for title
     _titleOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _fadeController,
@@ -100,7 +95,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
       ),
     );
 
-    // ✅ CLEAN: Simple fade in for search
+    //  CLEAN: Simple fade in for search
     _searchOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _fadeController,
@@ -110,7 +105,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
   }
 
   void _checkAndPlayAnimation() {
-    // ✅ SIMPLE: Check the global flag
+    //  SIMPLE: Check the global flag
     if (GlobalAnimationController.shouldShowTitleAnimation() && mounted) {
       debugPrint("🎯 ✅ Starting title animation...");
 
@@ -119,7 +114,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
         _isAnimating = true;
       });
 
-      // ✅ CONSUME: Mark animation as played to prevent repeat
+      //  CONSUME: Mark animation as played to prevent repeat
       GlobalAnimationController.consumeTitleAnimation();
 
       Future.delayed(Duration(milliseconds: 1500), () {
@@ -165,13 +160,13 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
           builder: (context, child) {
             return Stack(
               children: [
-                // ✅ CLEAN: Search fades in (no sliding)
+                //  CLEAN: Search fades in (no sliding)
                 Opacity(
                   opacity: _searchOpacity.value,
                   child: _buildSearchMode(),
                 ),
 
-                // ✅ CLEAN: Title fades out (no sliding)
+                //  CLEAN: Title fades out (no sliding)
                 Opacity(
                   opacity: _titleOpacity.value,
                   child: _buildNormalMode(),
@@ -190,7 +185,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
     );
   }
 
-  // ✅ CLEAN: No SlideTransition wrappers, just containers
+  //  CLEAN: No SlideTransition wrappers, just containers
   Widget _buildNormalMode() {
     return Container(
       height: kToolbarHeight - 4,
@@ -257,14 +252,14 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
         child: Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: Colors.black.withAlpha(255), // ✅ FIXED: Increased from 80 to 100
+            color: Colors.black.withAlpha(255), //  Increased from 80 to 100
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withAlpha(200), width: 1.5), // ✅ FIXED: Increased from 90 to 200
+            border: Border.all(color: Colors.white.withAlpha(200), width: 1.5), //  Increased from 90 to 200
             boxShadow: UIConstants.strongShadow,
           ),
           child: CircleAvatar(
             radius: 16,
-            backgroundColor: Colors.cyan.withAlpha(40), // ✅ FIXED: Increased from 20 to 40
+            backgroundColor: Colors.cyan.withAlpha(40), //  Increased from 20 to 40
             child: Text(
               widget.userEmail.isNotEmpty
                   ? widget.userEmail[0].toUpperCase()
@@ -272,7 +267,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
-                color: Colors.white, // ✅ FIXED: Full opacity white
+                color: Colors.white, //  Full opacity white
                 shadows: UIConstants.textShadow,
               ),
             ),

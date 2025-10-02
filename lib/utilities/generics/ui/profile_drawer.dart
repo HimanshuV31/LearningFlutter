@@ -54,7 +54,7 @@ class ProfileDrawer extends StatelessWidget {
         child: Container(
           color: Colors.transparent,
           child: Align(
-            alignment: Alignment.topRight, // ✅ Align to top right
+            alignment: Alignment.topRight, //  Align to top right
             child: Container(
               width: drawerWidth,
               margin: EdgeInsets.only(
@@ -73,7 +73,7 @@ class ProfileDrawer extends StatelessWidget {
                 ],
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // ✅ Only take needed space
+                mainAxisSize: MainAxisSize.min, //  Only take needed space
                 children: [
                   // Header section with profile
                   Container(
@@ -100,10 +100,10 @@ class ProfileDrawer extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(40), // ✅ FIXED: Increased from 20 to 40
+                            color: Colors.white.withAlpha(40), //  Increased from 20 to 40
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.white.withAlpha(153), // ✅ FIXED: Increased from 30 to 60
+                              color: Colors.white.withAlpha(153), //  Increased from 30 to 60
                               width: 2,
                             ),
                           ),
@@ -113,7 +113,7 @@ class ProfileDrawer extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white, // ✅ FIXED: Full opacity white
+                                color: Colors.white, //  Full opacity white
                               ),
                             ),
                           ),
@@ -126,7 +126,7 @@ class ProfileDrawer extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white, // ✅ FIXED: Full opacity white
+                            color: Colors.white, //  Full opacity white
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -139,7 +139,7 @@ class ProfileDrawer extends StatelessWidget {
                           userEmail,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withAlpha(180), // ✅ FIXED: Increased from 80 to 180 (~70% opacity)
+                            color: Colors.white.withAlpha(180), //  Increased from 80 to 180 (~70% opacity)
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -216,8 +216,8 @@ class ProfileDrawer extends StatelessWidget {
                 icon,
                 size: 20,
                 color: isDestructive
-                    ? Colors.redAccent.withAlpha(200) // ✅ FIXED: Increased from 80 to 200 (~78% opacity)
-                    : Colors.white.withAlpha(220),     // ✅ FIXED: Increased from 80 to 220 (~86% opacity)
+                    ? Colors.redAccent.withAlpha(200) //  Increased from 80 to 200 (~78% opacity)
+                    : Colors.white.withAlpha(220),     //  Increased from 80 to 220 (~86% opacity)
               ),
               const SizedBox(width: 12),
               Text(
@@ -226,8 +226,8 @@ class ProfileDrawer extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: isDestructive
-                      ? Colors.redAccent.withAlpha(200) // ✅ FIXED: Increased from 80 to 200
-                      : Colors.white.withAlpha(230),     // ✅ FIXED: Increased from 90 to 230 (~90% opacity)
+                      ? Colors.redAccent.withAlpha(200) //  Increased from 80 to 200
+                      : Colors.white.withAlpha(230),     //  Increased from 90 to 230 (~90% opacity)
                 ),
               ),
             ],
@@ -238,7 +238,7 @@ class ProfileDrawer extends StatelessWidget {
   }
 }
 
-// ✅ SIMPLE: Direct dialog approach (unchanged)
+//  SIMPLE: Direct dialog approach (unchanged)
 void showProfileDrawer({
   required BuildContext context,
   required String userEmail,

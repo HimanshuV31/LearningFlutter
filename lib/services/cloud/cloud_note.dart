@@ -20,7 +20,7 @@ class CloudNote {
     required this.updatedAt,
   });
 
-  // ✅ UPDATED: Accept QueryDocumentSnapshot<Object?> and cast internally
+  //Accept QueryDocumentSnapshot<Object?> and cast internally
   CloudNote.fromSnapshot(QueryDocumentSnapshot snapshot)
       : documentId = snapshot.id,
         ownerUserId = (snapshot.data() as Map<String, dynamic>)[ownerUserIdFieldName] as String,
@@ -32,7 +32,7 @@ class CloudNote {
         createdAt = _parseTimestamp((snapshot.data() as Map<String, dynamic>)[createdAtFieldName]),
         updatedAt = _parseTimestamp((snapshot.data() as Map<String, dynamic>)[updatedAtFieldName]);
 
-  // ✅ Helper method to parse timestamps safely
+  //  Helper method to parse timestamps safely
   static DateTime _parseTimestamp(dynamic timestamp) {
     if (timestamp == null) {
       return DateTime.now();

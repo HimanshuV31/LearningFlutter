@@ -4,7 +4,7 @@ import 'package:infinity_notes/ai_summarize/ai_summary_service.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 
-// ✅ Reusable UI Component with Clean Interface
+//  Reusable UI Component with Clean Interface
 class AISummaryDialog extends StatefulWidget {
   final String content;
   final String? title;
@@ -21,7 +21,7 @@ class AISummaryDialog extends StatefulWidget {
     this.onDialogClosed,
   });
 
-  // ✅ Static helper method for easy usage
+  //  Static helper method for easy usage
   static Future<void> show({
     required BuildContext context,
     required String content,
@@ -56,7 +56,7 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
     _generateSummary();
   }
 
-  // ✅ UI logic only - delegates to business logic
+  //  UI logic only - delegates to business logic
   Future<void> _generateSummary() async {
     setState(() {
       _isLoading = true;
@@ -76,7 +76,7 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
     }
   }
 
-  // ✅ Save action - delegates to business logic
+  //  Save action - delegates to business logic
   Future<void> _saveSummary() async {
     if (_summaryResult == null || !_summaryResult!.isSuccess) return;
 
@@ -119,7 +119,7 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
     );
   }
 
-  // ✅ UI Components - Clean and focused
+  //  UI Components - Clean and focused
   Widget _buildReadyChip() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

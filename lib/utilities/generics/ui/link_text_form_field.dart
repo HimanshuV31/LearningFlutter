@@ -63,7 +63,7 @@ class _LinkTextFormFieldState extends State<LinkTextFormField> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // ✅ ALWAYS VISIBLE TextField with proper decoration
+        //  ALWAYS VISIBLE TextField with proper decoration
         TextField(
           controller: widget.controller,
           focusNode: _focusNode,
@@ -83,7 +83,7 @@ class _LinkTextFormFieldState extends State<LinkTextFormField> {
           ),
         ),
 
-        // ✅ OVERLAY: RichText with colored links (only when not focused)
+        //  OVERLAY: RichText with colored links (only when not focused)
         if (!_hasFocus)
           Positioned.fill(
             child: GestureDetector(
