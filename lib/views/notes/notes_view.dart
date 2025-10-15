@@ -213,11 +213,35 @@ class _NotesViewState extends State<NotesView>{
       ) {
     debugPrint("🔍 _buildNotesContent: searchState = $searchState");
     Iterable<CloudNote> notesToShow;
+
     switch (searchState.runtimeType) {
       case SearchResults:
         final state = searchState as SearchResults;
-        notesToShow = state.results;
+
+        // ✅ FIX: Filter cached results against live allNotes to remove deleted ones
+        final liveNoteIds = allNotes.map((n) => n.documentId).toSet();
+        notesToShow = state.results.where((note) => liveNoteIds.contains(note.documentId));
+
         debugPrint("🔍 Showing ${notesToShow.length} search results for '${state.query}'");
+
+        // ✅ If all search results were deleted, show empty
+        if (notesToShow.isEmpty) {
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_off, size: 64, color: Colors.white54),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No results found for: ${state.query}",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
         break;
 
       case SearchEmpty:

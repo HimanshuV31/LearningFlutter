@@ -13,7 +13,7 @@ class AIService {
   final _secureStorage = const FlutterSecureStorage();
 
   // Using current Gemini 2.5 models (2025)
-  static const String _openAIUrl = 'https://api.openai.com/v1/chat/completions';
+  // static const String _openAIUrl = 'https://api.openai.com/v1/chat/completions';
   static const String _geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   // API Keys

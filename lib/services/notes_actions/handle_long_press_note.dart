@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/services/notes_actions/share_note.dart';
+import 'package:infinity_notes/services/search/bloc/search_bloc.dart';
+import 'package:infinity_notes/services/search/bloc/search_event.dart';
+import 'package:infinity_notes/services/search/bloc/search_state.dart';
 import 'package:infinity_notes/utilities/ai/ai_helper.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
@@ -136,12 +140,23 @@ Future<void> handleLongPressNote({
       break;
     case 'delete':
       final confirm = await showDeleteDialog(context: context);
-      if(confirm) {
+      if (confirm) {
         await notesService.deleteNote(documentId: note.documentId);
-        showCustomToast(context, "Note Deleted Successfully");
-        break;
+        if (context.mounted) {
+          final searchBloc = BlocProvider.of<SearchBloc>(context);
+          final currentState = searchBloc.state;
+          final updatedNotes = List<CloudNote>.from(searchBloc.allNotes)
+            ..removeWhere((n) => n.documentId == note.documentId);
+          searchBloc.add(SearchInitiated(updatedNotes));
+          if (currentState is SearchResults) {
+            searchBloc.add(SearchQueryChanged(currentState.query));
+          }
+
+          showCustomToast(context, "Note Deleted Successfully");
+        }
       }
-    // case 'archive':
+      break;
+  // case 'archive':
     //   // Future feature handling
     //   break;
   } /*Switch case*/

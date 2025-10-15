@@ -49,7 +49,7 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
   final AISummaryService _summaryService = AISummaryService();
   bool _isLoading = false;
   AISummaryResult? _summaryResult;
-
+  bool _summarySavedFlag = false;
   @override
   void initState() {
     super.initState();
@@ -78,15 +78,15 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
 
   //  Save action - delegates to business logic
   Future<void> _saveSummary() async {
-    if (_summaryResult == null || !_summaryResult!.isSuccess) return;
+    if (_summaryResult == null || !_summaryResult!.isSuccess || _summarySavedFlag) return;
 
     try {
+      _summarySavedFlag = true;
       final currentUser = AuthService.firebase().currentUser!;
       await _summaryService.saveSummaryAsNote(
         summaryResult: _summaryResult!,
         userId: currentUser.id,
       );
-
       if (mounted) {
         Navigator.of(context).pop();
         showCustomToast(context, "AI Summary saved successfully!");
@@ -293,6 +293,7 @@ class _AISummaryDialogState extends State<AISummaryDialog> {
         child: const Text('Close'),
       ),
       ElevatedButton.icon(
+
         onPressed: _saveSummary,
         icon: const Icon(Icons.save, size: 18),
         label: const Text('Save as New Note'),

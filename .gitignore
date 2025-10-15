@@ -99,3 +99,4 @@ ios/Runner/Assets.xcassets/LaunchImage.imageset/
 # API Keys
 #-------------------------------
 lib/constants/api_keys.dart
+android/key.properties

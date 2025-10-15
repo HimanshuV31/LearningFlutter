@@ -139,7 +139,7 @@ class ProfileDrawer extends StatelessWidget {
                           userEmail,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withAlpha(180), //  Increased from 80 to 180 (~70% opacity)
+                            color: Colors.white.withAlpha(180),
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,

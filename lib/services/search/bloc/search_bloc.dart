@@ -9,6 +9,7 @@ import 'package:infinity_notes/services/search/search_service.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   Iterable<CloudNote> _allNotes = [];
   Timer? _debounceTimer; // Keep this for cleanup but don't use it
+  Iterable<CloudNote> get allNotes => _allNotes;
 
   SearchBloc() : super(const SearchInitial()) {
     on<SearchQueryChanged>(_onSearchQueryChanged);
@@ -19,7 +20,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   void _onSearchInitiated(
       SearchInitiated event,
       Emitter<SearchState> emit,
-      ) {
+      )
+  {
     _allNotes = event.allNotes;
     emit(SearchInitial(notes: _allNotes));
     debugPrint("🔍 SearchBloc initialized with ${_allNotes.length} notes");
@@ -50,7 +52,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   void _onSearchCleared(
       SearchCleared event,
       Emitter<SearchState> emit,
-      ) {
+      )
+  {
     _debounceTimer?.cancel();
     emit(SearchInitial(notes: _allNotes));
     debugPrint("🔍 SearchBloc: Search cleared, showing all ${_allNotes.length} notes");

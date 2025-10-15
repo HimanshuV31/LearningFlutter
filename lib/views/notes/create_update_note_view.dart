@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:infinity_notes/services/auth/auth_service.dart';
 import 'package:infinity_notes/services/cloud/cloud_note.dart';
 import 'package:infinity_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:infinity_notes/services/notes_actions/delete_note.dart';
 import 'package:infinity_notes/services/notes_actions/share_note.dart';
+import 'package:infinity_notes/utilities/ai/ai_helper.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_app_bar.dart';
 import 'package:infinity_notes/utilities/generics/ui/custom_toast.dart';
 import 'package:infinity_notes/utilities/generics/ui/dialogs.dart';
-import 'package:infinity_notes/utilities/ai/ai_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -28,7 +28,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   String _initialTitle = "";
   String _initialText = "";
   Timer? _debounce;
-
   List<DetectedLink> _detectedLinks = [];
 
   @override
@@ -39,49 +38,44 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     _textController = TextEditingController();
     _setupListeners();
   }
-
   void _setupListeners() {
     _titleController.addListener(_onTitleChanged);
     _textController.addListener(_onTextChanged);
   }
-
   void _onTitleChanged() {
     setState(() {});
     _debouncedHandleChange();
   }
-
   void _onTextChanged() {
     setState(() {});
     _detectLinks();
     _debouncedHandleChange();
   }
-
   void _detectLinks() {
     final text = _textController.text;
     final linkRegex = RegExp(
       r'(https?://\S+|www\.\S+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\S*)',
       caseSensitive: false,
     );
-
     final foundLinks = <DetectedLink>[];
     for (final match in linkRegex.allMatches(text)) {
       final linkText = match.group(0)!;
-      final processedUrl = linkText.startsWith('http') ? linkText : 'https://$linkText';
-
-      foundLinks.add(DetectedLink(
-        url: processedUrl,
-        displayText: linkText,
-        siteName: _extractSiteName(linkText),
-      ));
+      final processedUrl = linkText.startsWith('http')
+          ? linkText
+          : 'https://$linkText';
+      foundLinks.add(
+        DetectedLink(
+          url: processedUrl,
+          displayText: linkText,
+          siteName: _extractSiteName(linkText),
+        ),
+      );
     }
-
     setState(() {
       _detectedLinks = foundLinks;
     });
-
     debugPrint("🔗 Detected ${_detectedLinks.length} links");
   }
-
   String _extractSiteName(String url) {
     try {
       String cleanUrl = url;
@@ -94,46 +88,38 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       if (cleanUrl.startsWith('https://')) {
         cleanUrl = cleanUrl.substring(8);
       }
-
       final firstSlash = cleanUrl.indexOf('/');
       if (firstSlash != -1) {
         cleanUrl = cleanUrl.substring(0, firstSlash);
       }
-
       final parts = cleanUrl.split('.');
       if (parts.length >= 2) {
         return parts[0].toUpperCase();
       }
-
       return cleanUrl.toUpperCase();
     } catch (e) {
       return 'WEBSITE';
     }
   }
-
   void _debouncedHandleChange() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       _handleChange();
     });
   }
-
-  //  ADDED: Helper method to extract links from DetectedLink objects
   List<String>? _getLinksFromDetectedLinks() {
-    return _detectedLinks.isNotEmpty ? _detectedLinks.map((link) => link.url).toList() : null;
+    return _detectedLinks.isNotEmpty
+        ? _detectedLinks.map((link) => link.url).toList()
+        : null;
   }
-
   Future<void> _handleChange() async {
     final title = _titleController.text.trim();
     final text = _textController.text.trim();
-
     if (_note != null && title == _initialTitle && text == _initialText) {
       return;
     }
-
     final currentUser = AuthService.firebase().currentUser!;
     final userId = currentUser.id;
-
     if ((title.isNotEmpty || text.isNotEmpty) && _note == null) {
       await _createNote(userId, title, text);
       return;
@@ -148,47 +134,35 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     }
     await _updateNote(title, text);
   }
-
-  //  UPDATED: Create note with links
   Future<void> _createNote(String userId, String title, String text) async {
     final links = _getLinksFromDetectedLinks();
-
     final newNote = await _notesService.createNewNote(
       ownerUserId: userId,
       title: title,
       text: text,
       links: links, //  Pass detected links
     );
-
     setState(() {
       _note = newNote;
       _initialTitle = title;
       _initialText = text;
     });
-
     debugPrint("📝 Created note with ${links?.length ?? 0} links");
   }
-
-  //  UPDATED: Update note with links
   Future<void> _updateNote(String title, String text) async {
     final links = _getLinksFromDetectedLinks();
-
     await _notesService.updateNote(
       documentId: _note!.documentId,
       title: title,
       text: text,
       links: links, //  Update links
     );
-
     setState(() {
       _initialTitle = title;
       _initialText = text;
     });
-
     debugPrint("📝 Updated note with ${links?.length ?? 0} links");
   }
-
-  //  UPDATED: Initialize detected links from existing note
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -199,23 +173,23 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       _textController.text = _note!.text;
       _initialTitle = _note!.title;
       _initialText = _note!.text;
-
-      //  UPDATED: Initialize detected links from database
       if (_note!.hasLinks) {
-        _detectedLinks = _note!.safeLinks.map((url) => DetectedLink(
-          url: url,
-          displayText: url,
-          siteName: _extractSiteName(url),
-        )).toList();
+        _detectedLinks = _note!.safeLinks
+            .map(
+              (url) => DetectedLink(
+                url: url,
+                displayText: url,
+                siteName: _extractSiteName(url),
+              ),
+            )
+            .toList();
       }
-
       _detectLinks(); // Still detect new links in the text
     } else {
       _initialText = "";
       _initialTitle = "";
     }
   }
-
   @override
   void dispose() {
     _titleController.dispose();
@@ -223,7 +197,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     _debounce?.cancel();
     super.dispose();
   }
-
   void _launchURL(String url) async {
     try {
       final uri = Uri.parse(url);
@@ -233,8 +206,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       debugPrint("🔗 Failed to launch: $e");
     }
   }
-
-  //  SIMPLIFIED: Menu actions with clean delegation
   void _handleMenuAction(String action) async {
     switch (action) {
       case 'summarize':
@@ -251,23 +222,21 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         break;
     }
   }
-
-  //  CLEAN: Simple delegation to AI helper
   void _handleSummarizeAction() {
     AIHelper.handleSummarizeAction(
       context: context,
       content: _textController.text,
       title: _titleController.text,
-      onComplete: () => showCustomToast(context, "Summary created successfully!"),
+      onComplete: () =>
+          showCustomToast(context, "Summary created successfully!"),
     );
   }
-
   Future<void> _handleDeleteAction() async {
     if (_note != null) {
       final confirm = await showDeleteDialog(context: context);
       if (confirm) {
         await _notesService.deleteNote(documentId: _note!.documentId);
-        if(!mounted) return;
+        if (!mounted) return;
         showCustomToast(context, "Note Deleted Successfully");
         if (!mounted) return;
         Navigator.of(context).pop();
@@ -278,13 +247,11 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       showCustomToast(context, "Content cleared");
     }
   }
-
   void _handleExportAction() {
     if (_titleController.text.isEmpty && _textController.text.isEmpty) {
       showCustomToast(context, "Nothing to export");
       return;
     }
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -305,7 +272,10 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
             icon: const Icon(Icons.note_add, color: Colors.green, size: 20),
             label: const Text(
               'Save as New Note',
-              style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton.icon(
@@ -333,12 +303,10 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     );
   }
 
-  //  UPDATED: Save as new note with links
   Future<void> _saveAsNewNote() async {
     final title = _titleController.text.trim();
     final text = _textController.text.trim();
     final links = _getLinksFromDetectedLinks();
-
     try {
       final currentUser = AuthService.firebase().currentUser!;
       final newTitle = title.isNotEmpty ? "$title (Copy)" : "Untitled (Copy)";
@@ -355,8 +323,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       showCustomToast(context, "Failed to save note copy");
     }
   }
-
-  //  UPDATED: Duplicate note with links
   Future<void> _handleDuplicateAction() async {
     final title = _titleController.text.trim();
     final text = _textController.text.trim();
@@ -365,12 +331,12 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       showCustomToast(context, "Nothing to duplicate");
       return;
     }
-
     try {
       final currentUser = AuthService.firebase().currentUser!;
-      final duplicatedTitle = title.isNotEmpty ? "$title (Copy)" : "Untitled (Copy)";
+      final duplicatedTitle = title.isNotEmpty
+          ? "$title (Copy)"
+          : "Untitled (Copy)";
       final links = _getLinksFromDetectedLinks();
-
       await _notesService.createNewNote(
         ownerUserId: currentUser.id,
         title: duplicatedTitle,
@@ -383,15 +349,14 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       showCustomToast(context, "Failed to duplicate note");
     }
   }
-
-  //  CLEAN: Simple helper using AIHelper validation
   bool get _canSummarize => AIHelper.canSummarizeContent(_textController.text);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: _titleController.text.isEmpty ? "New Note" : _titleController.text,
+        title: _titleController.text.isEmpty
+            ? "New Note"
+            : _titleController.text,
         themeColor: backgroundColor,
         backgroundColor: Colors.black,
         foregroundColor: foregroundColor,
@@ -435,10 +400,12 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
               const PopupMenuDivider(),
               PopupMenuItem(
                 value: "export",
-                enabled: _titleController.text.isNotEmpty || _textController.text.isNotEmpty,
+                enabled:
+                    _titleController.text.isNotEmpty ||
+                    _textController.text.isNotEmpty,
                 child: const Row(
                   children: [
-                    Icon(Icons.file_download, size: 20, color: Colors.black,),
+                    Icon(Icons.file_download, size: 20, color: Colors.black),
                     SizedBox(width: 12),
                     Text("Export"),
                   ],
@@ -446,13 +413,14 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
               ),
               PopupMenuItem(
                 value: "duplicate",
-                enabled: _titleController.text.isNotEmpty || _textController.text.isNotEmpty,
+                enabled:
+                    _titleController.text.isNotEmpty ||
+                    _textController.text.isNotEmpty,
                 child: const Row(
                   children: [
-                    Icon(Icons.copy, size: 20, color: Colors.black,),
+                    Icon(Icons.copy, size: 20, color: Colors.black),
                     SizedBox(width: 12),
                     Text("Duplicate"),
-
                   ],
                 ),
               ),
@@ -474,12 +442,12 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
           ),
         ],
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ Title TextField
             TextField(
               controller: _titleController,
               style: const TextStyle(
@@ -494,9 +462,8 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
               ),
             ),
             const SizedBox(height: 16),
-
+            // ✅ FIXED: Text field takes remaining space minus links
             Expanded(
-              flex: 3,
               child: TextField(
                 controller: _textController,
                 keyboardType: TextInputType.multiline,
@@ -511,17 +478,17 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
             if (_detectedLinks.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              // Links header
               Row(
                 children: [
-                  const Icon(Icons.link, size: 20, color: Colors.blue),
+                  const Icon(Icons.link, size: 18, color: Colors.blue),
                   const SizedBox(width: 8),
                   Text(
                     "Detected Links (${_detectedLinks.length})",
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Colors.blue,
                     ),
@@ -529,87 +496,70 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                 ],
               ),
               const SizedBox(height: 8),
-            ],
-
-            Expanded(
-              flex: 2,
-              child: _detectedLinks.isEmpty
-                  ? Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey.shade50,
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.1,
                 ),
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.link_off, size: 48, color: Colors.grey),
-                      SizedBox(height: 8),
-                      Text(
-                        "No links detected",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                ),
-              )
-                  : Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListView.separated(
-                  itemCount: _detectedLinks.length,
-                  separatorBuilder: (context, index) => Divider(
-                    height: 1,
-                    color: Colors.grey.shade200,
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: _detectedLinks.length,
+                    separatorBuilder: (context, index) =>
+                        Divider(height: 1, color: Colors.grey.shade300),
+                    itemBuilder: (context, index) {
+                      final link = _detectedLinks[index];
+                      return ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        leading: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Icon(
+                            Icons.language,
+                            color: Colors.blue.shade700,
+                            size: 16,
+                          ),
+                        ),
+                        title: Text(
+                          link.siteName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        subtitle: Text(
+                          link.displayText,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.blue.shade700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: Icon(
+                          Icons.open_in_new,
+                          color: Colors.grey.shade600,
+                          size: 16,
+                        ),
+                        onTap: () => _launchURL(link.url),
+                      );
+                    },
                   ),
-                  itemBuilder: (context, index) {
-                    final link = _detectedLinks[index];
-                    return ListTile(
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue.shade200),
-                        ),
-                        child: Icon(
-                          Icons.language,
-                          color: Colors.blue.shade700,
-                          size: 20,
-                        ),
-                      ),
-                      title: Text(
-                        link.siteName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        link.displayText,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue.shade700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Icon(
-                        Icons.open_in_new,
-                        color: Colors.grey.shade600,
-                        size: 18,
-                      ),
-                      onTap: () => _launchURL(link.url),
-                    );
-                  },
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -621,7 +571,6 @@ class DetectedLink {
   final String url;
   final String displayText;
   final String siteName;
-
   DetectedLink({
     required this.url,
     required this.displayText,
